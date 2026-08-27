@@ -2,7 +2,7 @@
    CLOUDFLARE R2 STORAGE — upload + delete via S3-compatible API.
    Each gallery gets its own folder: galleries/{clientName}/{filename}
    ========================================================================== */
-const { S3Client, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
+const { S3Client, PutObjectCommand, DeleteObjectCommand, ListObjectsV2Command, DeleteObjectsCommand } = require('@aws-sdk/client-s3');
 const fs = require('fs');
 const path = require('path');
 
@@ -74,4 +74,28 @@ async function deleteAsset(storageId) {
   }
 }
 
-module.exports = { uploadAsset, deleteAsset, isConfigured };
+async function deleteFolder(folderPath) {
+  if (!folderPath) return;
+  try {
+    let continuationToken;
+    do {
+      const list = await s3.send(new ListObjectsV2Command({
+        Bucket: BUCKET,
+        Prefix: folderPath.endsWith('/') ? folderPath : folderPath + '/',
+        ContinuationToken: continuationToken
+      }));
+      if (!list.Contents || list.Contents.length === 0) break;
+
+      await s3.send(new DeleteObjectsCommand({
+        Bucket: BUCKET,
+        Delete: { Objects: list.Contents.map(obj => ({ Key: obj.Key })) }
+      }));
+      continuationToken = list.NextContinuationToken;
+    } while (continuationToken);
+    console.log(`[R2] Deleted folder: ${folderPath}`);
+  } catch (err) {
+    console.error('R2 folder delete failed:', err.message);
+  }
+}
+
+module.exports = { uploadAsset, deleteAsset, deleteFolder, isConfigured };

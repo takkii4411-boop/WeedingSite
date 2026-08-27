@@ -129,4 +129,11 @@ async function deleteAsset(storageId, backendHint) {
   }
 }
 
-module.exports = { uploadAsset, deleteAsset, isConfigured, getBackend };
+async function deleteFolder(folderPath, backendHint) {
+  if (!folderPath) return;
+  const backend = backendHint || process.env.STORAGE_BACKEND || 'telegram';
+  const impl = loadBackend(backend);
+  if (impl && impl.deleteFolder) await impl.deleteFolder(folderPath);
+}
+
+module.exports = { uploadAsset, deleteAsset, deleteFolder, isConfigured, getBackend };

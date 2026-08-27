@@ -195,6 +195,11 @@ router.post('/:slug/delete', requireAdmin, async (req, res) => {
     }
   }
 
+  const folderName = gallery.client_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').substring(0, 50);
+  const folderPath = `galleries/${folderName}`;
+  const backend = gallery.storage_backend || 'telegram';
+  await store.deleteFolder(folderPath, backend);
+
   await db.execute({ sql: 'DELETE FROM client_galleries WHERE id = ?', args: [gallery.id] });
 
   res.redirect('/admin/galleries');

@@ -114,4 +114,6 @@ async function deleteAsset(storageId) {
   console.log(`[Telegram] Note: file ${storageId} cannot be deleted via Bot API (Telegram limitation)`);
 }
 
-module.exports = { uploadAsset, deleteAsset, isConfigured };
+function deleteFolder() { /* Telegram has no folders */ }
+
+module.exports = { uploadAsset, deleteAsset, deleteFolder, isConfigured };

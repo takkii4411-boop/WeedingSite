@@ -61,4 +61,14 @@ async function deleteAsset(storageId, resourceType) {
   }
 }
 
-module.exports = { uploadAsset, deleteAsset, isConfigured };
+async function deleteFolder(folderPath) {
+  if (!folderPath) return;
+  try {
+    await cloudinary.api.delete_folder(folderPath);
+    console.log(`[Cloudinary] Deleted folder: ${folderPath}`);
+  } catch (err) {
+    console.error('Cloudinary folder delete failed:', err.message);
+  }
+}
+
+module.exports = { uploadAsset, deleteAsset, deleteFolder, isConfigured };
