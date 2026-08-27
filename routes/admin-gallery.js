@@ -76,7 +76,7 @@ router.post('/create', requireAdmin, async (req, res) => {
   await db.execute({
     sql: `INSERT INTO client_galleries (client_name, client_email, client_phone, event_type, event_date, location, slug, description, storage_backend)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    args: [client_name, client_email || null, client_phone || null, event_type || null, event_date || null, location || null, slug, description || null, storage_backend || process.env.STORAGE_BACKEND || 'telegram']
+    args: [client_name, client_email || null, client_phone || null, event_type || null, event_date || null, location || null, slug, description || null, storage_backend || 'telegram']
   });
   res.redirect('/admin/galleries/' + slug);
 });
