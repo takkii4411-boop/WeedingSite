@@ -82,11 +82,14 @@
   var heroImg = document.getElementById("heroImg");
 
   if (media.hero_video && heroVideo) {
-    heroVideo.querySelectorAll("source").forEach(function (s) { s.remove(); });
-    heroVideo.src = media.hero_video.url;
-    heroVideo.load();
-    var pv = heroVideo.play();
-    if (pv && pv.catch) pv.catch(function () {});
+    var videoUrl = media.hero_video.url;
+    if (videoUrl && videoUrl.indexOf('api.telegram.org') === -1) {
+      heroVideo.querySelectorAll("source").forEach(function (s) { s.remove(); });
+      heroVideo.src = videoUrl;
+      heroVideo.load();
+      var pv = heroVideo.play();
+      if (pv && pv.catch) pv.catch(function () {});
+    }
   }
   if (media.hero_poster) {
     setImg(heroImg, media.hero_poster.url);
