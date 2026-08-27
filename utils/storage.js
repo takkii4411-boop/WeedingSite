@@ -19,36 +19,54 @@ function loadBackend(name) {
 }
 
 function getBackend(name) {
+  const requested = name || '(none)';
+  console.log(`[Storage] getBackend called: requested="${requested}", STORAGE_BACKEND="${process.env.STORAGE_BACKEND || ''}"`);
+
   // If specific backend requested (from gallery toggle)
   if (name === 'r2') {
     const impl = loadBackend('r2');
-    if (impl && impl.isConfigured()) return { name: 'r2', impl };
+    const configured = impl && impl.isConfigured();
+    console.log(`[Storage] R2 check: loaded=${!!impl}, configured=${configured}`);
+    if (configured) return { name: 'r2', impl };
   }
   if (name === 'cloudinary') {
     const impl = loadBackend('cloudinary');
-    if (impl && impl.isConfigured()) return { name: 'cloudinary', impl };
+    const configured = impl && impl.isConfigured();
+    console.log(`[Storage] Cloudinary check: loaded=${!!impl}, configured=${configured}`);
+    if (configured) return { name: 'cloudinary', impl };
   }
   if (name === 'telegram') {
     const impl = loadBackend('telegram');
-    if (impl && impl.isConfigured()) return { name: 'telegram', impl };
+    const configured = impl && impl.isConfigured();
+    console.log(`[Storage] Telegram check: loaded=${!!impl}, configured=${configured}`);
+    if (configured) return { name: 'telegram', impl };
   }
 
   // Default: STORAGE_BACKEND env var ke hisaab se, phir Telegram, then R2, then Cloudinary
   const envBackend = process.env.STORAGE_BACKEND;
   if (envBackend) {
     const impl = loadBackend(envBackend);
-    if (impl && impl.isConfigured()) return { name: envBackend, impl };
+    const configured = impl && impl.isConfigured();
+    console.log(`[Storage] ENV fallback "${envBackend}": loaded=${!!impl}, configured=${configured}`);
+    if (configured) return { name: envBackend, impl };
   }
 
   const tg = loadBackend('telegram');
-  if (tg && tg.isConfigured()) return { name: 'telegram', impl: tg };
+  const tgOk = tg && tg.isConfigured();
+  console.log(`[Storage] Fallback telegram: loaded=${!!tg}, configured=${tgOk}`);
+  if (tgOk) return { name: 'telegram', impl: tg };
 
   const r2 = loadBackend('r2');
-  if (r2 && r2.isConfigured()) return { name: 'r2', impl: r2 };
+  const r2Ok = r2 && r2.isConfigured();
+  console.log(`[Storage] Fallback r2: loaded=${!!r2}, configured=${r2Ok}`);
+  if (r2Ok) return { name: 'r2', impl: r2 };
 
   const cld = loadBackend('cloudinary');
-  if (cld && cld.isConfigured()) return { name: 'cloudinary', impl: cld };
+  const cldOk = cld && cld.isConfigured();
+  console.log(`[Storage] Fallback cloudinary: loaded=${!!cld}, configured=${cldOk}`);
+  if (cldOk) return { name: 'cloudinary', impl: cld };
 
+  console.error(`[Storage] NO BACKEND CONFIGURED! STORAGE_BACKEND="${process.env.STORAGE_BACKEND || ''}" R2_ACCOUNT_ID="${process.env.R2_ACCOUNT_ID || ''}" R2_BUCKET="${process.env.R2_BUCKET || ''}"`);
   throw new Error('No storage configured! Set up R2, Cloudinary, or Telegram in .env');
 }
 
