@@ -10,8 +10,8 @@ const uploadsDir = path.join(__dirname, '..', 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
 const db = createClient({
-  url: process.env.TURSO_DATABASE_URL || 'file:' + path.join(dataDir, 'local.db'),
-  authToken: process.env.TURSO_AUTH_TOKEN || undefined,
+  url: process.env.TURSO_DATABASE_URL || process.env.TURSO_URL || 'file:' + path.join(dataDir, 'local.db'),
+  authToken: process.env.TURSO_AUTH_TOKEN || process.env.TURSO_TOKEN || undefined,
 });
 
 async function init() {
