@@ -54,9 +54,9 @@ router.get('/admin/status', (req, res) => {
 
 router.get('/inquiries/list', requireAdminJson, async (req, res) => {
   const { rows } = await db.execute(`
-    SELECT name, email, phone, event_type, event_date, location
+    SELECT id, name, email, phone, event_type, event_date, location
     FROM contacts
-    WHERE status = 'accepted' AND event_date IS NOT NULL AND event_date != ''
+    WHERE status = 'accepted'
     ORDER BY event_date DESC
     LIMIT 50
   `);

@@ -57,6 +57,10 @@
                     data-status="denied">Deny</button>
             <button class="btn btn-sm btn-ghost <%= c.status === 'pending' ? 'is-active' : '' %>"
                     data-status="pending">Reset</button>
+            <% if (c.status === 'accepted') { %>
+            <a href="/admin/galleries?client_name=<%= encodeURIComponent(c.name) %>&client_email=<%= encodeURIComponent(c.email || '') %>&client_phone=<%= encodeURIComponent(c.phone || '') %>&event_type=<%= encodeURIComponent(c.event_type || '') %>&event_date=<%= encodeURIComponent(c.event_date || '') %>&location=<%= encodeURIComponent(c.location || '') %>&contact_id=<%= c.id %>"
+               class="btn btn-sm" style="background:#4d2a0a;color:#fb923c;border:1px solid #fb923c">Create Gallery</a>
+            <% } %>
             <form action="/admin/inquiry/delete/<%= c.id %>" method="POST" class="inline-form"
                   onsubmit="return confirm('Delete this inquiry permanently?')">
               <button class="btn btn-sm btn-danger">Delete</button>

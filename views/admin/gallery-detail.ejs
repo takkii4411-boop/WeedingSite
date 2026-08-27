@@ -107,6 +107,12 @@
         <button onclick="navigator.clipboard.writeText(document.getElementById('shareLink').textContent);this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)">Copy</button>
       </div>
 
+      <% if (inquiry) { %>
+      <div style="margin-top:8px;padding:8px 12px;background:#1a2a1a;border:1px solid #2d5a2d;border-radius:6px;font-size:12px;color:#4ade80">
+        Linked from inquiry: <b><%= inquiry.name %></b> (<%= inquiry.email || '' %>) — <%= inquiry.event_type || '' %> <%= inquiry.event_date || '' %>
+      </div>
+      <% } %>
+
       <!-- Storage Toggle + Edit Button -->
       <div class="storage-row">
         <label>Storage:</label>

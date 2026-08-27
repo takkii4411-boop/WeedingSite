@@ -63,7 +63,9 @@ async function init() {
       description TEXT,
       is_public INTEGER NOT NULL DEFAULT 1,
       storage_backend TEXT NOT NULL DEFAULT 'telegram',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      contact_id INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL
     )`,
     `CREATE TABLE IF NOT EXISTS client_gallery_images (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -84,6 +86,9 @@ async function init() {
 
   try { await db.execute('SELECT client_phone FROM client_galleries LIMIT 1'); }
   catch { await db.execute('ALTER TABLE client_galleries ADD COLUMN client_phone TEXT'); }
+
+  try { await db.execute('SELECT contact_id FROM client_galleries LIMIT 1'); }
+  catch { await db.execute('ALTER TABLE client_galleries ADD COLUMN contact_id INTEGER'); }
 
   const { rows } = await db.execute('SELECT COUNT(*) as count FROM admins');
   if (rows[0].count === 0) {

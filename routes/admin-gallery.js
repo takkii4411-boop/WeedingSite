@@ -64,20 +64,24 @@ router.get('/', requireAdmin, async (req, res) => {
     client_phone: req.query.client_phone || '',
     event_type: req.query.event_type || '',
     event_date: req.query.event_date || '',
-    location: req.query.location || ''
+    location: req.query.location || '',
+    contact_id: req.query.contact_id || ''
   };
   res.render('admin/galleries', { galleries, currentBackend: 'telegram', prefill });
 });
 
 router.post('/create', requireAdmin, async (req, res) => {
-  const { client_name, client_email, client_phone, event_type, event_date, location, description, storage_backend } = req.body;
+  const { client_name, client_email, client_phone, event_type, event_date, location, description, storage_backend, contact_id } = req.body;
   if (!client_name) return res.redirect('/admin/galleries');
   const slug = generateToken();
   await db.execute({
-    sql: `INSERT INTO client_galleries (client_name, client_email, client_phone, event_type, event_date, location, slug, description, storage_backend)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    args: [client_name, client_email || null, client_phone || null, event_type || null, event_date || null, location || null, slug, description || null, storage_backend || 'telegram']
+    sql: `INSERT INTO client_galleries (client_name, client_email, client_phone, event_type, event_date, location, slug, description, storage_backend, contact_id)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    args: [client_name, client_email || null, client_phone || null, event_type || null, event_date || null, location || null, slug, description || null, storage_backend || 'telegram', contact_id || null]
   });
+  if (contact_id) {
+    await db.execute({ sql: `UPDATE contacts SET status = 'accepted' WHERE id = ?`, args: [contact_id] });
+  }
   res.redirect('/admin/galleries/' + slug);
 });
 
@@ -86,8 +90,13 @@ router.get('/:slug', requireAdmin, async (req, res) => {
   const gallery = rows[0];
   if (!gallery) return res.redirect('/admin/galleries');
   const { rows: images } = await db.execute({ sql: 'SELECT * FROM client_gallery_images WHERE gallery_id = ? ORDER BY sort_order, id', args: [gallery.id] });
+  let inquiry = null;
+  if (gallery.contact_id) {
+    const { rows: inqRows } = await db.execute({ sql: 'SELECT * FROM contacts WHERE id = ?', args: [gallery.contact_id] });
+    inquiry = inqRows[0] || null;
+  }
   const currentBackend = store.getBackend().name;
-  res.render('admin/gallery-detail', { gallery, images, currentBackend });
+  res.render('admin/gallery-detail', { gallery, images, currentBackend, inquiry });
 });
 
 router.post('/:slug/upload', requireAdmin, upload.array('images', 500), async (req, res) => {

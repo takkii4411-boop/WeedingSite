@@ -132,6 +132,7 @@
             <h2>Create New Gallery</h2>
             <form method="POST" action="/admin/galleries/create">
               <!-- Quick fill from inquiry -->
+              <input type="hidden" name="contact_id" id="contactId" value="<%= prefill.contact_id %>">
               <div class="form-row full quick-fill">
                 <div>
                   <label>⚡ Quick Fill from Inquiry</label>
@@ -237,6 +238,7 @@
       form.querySelector('[name="client_phone"]').value = inq.phone || '';
       form.querySelector('[name="event_date"]').value = inq.event_date || '';
       form.querySelector('[name="location"]').value = inq.location || '';
+      form.querySelector('[name="contact_id"]').value = inq.id || '';
       var typeSelect = form.querySelector('[name="event_type"]');
       if (typeSelect && inq.event_type) {
         for (var i = 0; i < typeSelect.options.length; i++) {
