@@ -1,7 +1,8 @@
 /* ==========================================================================
-   HOLIDAYS — fetches public holidays from free APIs (no key needed).
-   Primary: tallyfy.com/national-holidays (static JSON, reliable)
-   Fallback: date.nager.at (for India or other countries)
+   HOLIDAYS — fetches Indian holidays from free APIs (no key needed).
+   Primary: indian-festival-api.vercel.app (40+ festivals, comprehensive)
+   Fallback: tallyfy.com (10 national holidays, reliable for any year)
+   Fallback 2: date.nager.at (international)
    Caches to file + memory for instant reload.
    ========================================================================== */
 const https = require('https');
@@ -9,7 +10,7 @@ const fs = require('fs');
 const path = require('path');
 
 const cache = new Map();
-const CACHE_TTL = 60 * 60 * 1000; // 1 hour memory
+const CACHE_TTL = 60 * 60 * 1000;
 const CACHE_FILE = path.join(__dirname, '..', 'data', 'holidays-cache.json');
 
 let fileCache = {};
@@ -29,7 +30,7 @@ function saveFileCache() {
 
 function fetchJSON(url) {
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error('Timeout')), 8000);
+    const timer = setTimeout(() => reject(new Error('Timeout')), 10000);
     https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
@@ -58,30 +59,44 @@ async function getHolidays(year, countryCode) {
 
   let map = {};
 
-  /* --- Primary: tallyfy.com (India only, static JSON, reliable) --- */
+  /* --- Primary: indian-festival-api (40+ Indian festivals, EN names) --- */
   if (cc === 'IN') {
     try {
-      const url = `https://tallyfy.com/national-holidays/api/IN/${year}.json`;
-      const raw = await fetchJSON(url);
-      (raw.holidays || []).forEach(h => {
-        const d = h.observed_date || h.date;
-        map[d] = { name: h.name, localName: h.local_name || h.name };
+      const raw = await fetchJSON('https://indian-festival-api.vercel.app/api/festivals');
+      (raw.data || []).forEach(h => {
+        const dateKey = 'date_' + year;
+        const date = h[dateKey];
+        if (date) {
+          map[date] = { name: h.name, localName: h.name };
+        }
       });
     } catch (err) {
       // Primary down, try fallback
     }
   }
 
-  /* --- Fallback: date.nager.at --- */
+  /* --- Fallback 1: tallyfy.com (10 national holidays, any year) --- */
+  if (Object.keys(map).length === 0 && cc === 'IN') {
+    try {
+      const raw = await fetchJSON(`https://tallyfy.com/national-holidays/api/IN/${year}.json`);
+      (raw.holidays || []).forEach(h => {
+        const d = h.observed_date || h.date;
+        map[d] = { name: h.name, localName: h.name };
+      });
+    } catch (err) {
+      // Try fallback 2
+    }
+  }
+
+  /* --- Fallback 2: date.nager.at --- */
   if (Object.keys(map).length === 0) {
     try {
-      const url = `https://date.nager.at/api/v3/PublicHolidays/${year}/${cc}`;
-      const raw = await fetchJSON(url);
+      const raw = await fetchJSON(`https://date.nager.at/api/v3/PublicHolidays/${year}/${cc}`);
       raw.forEach(h => {
         map[h.date] = { name: h.name, localName: h.localName || h.name };
       });
     } catch (err) {
-      // Both failed — holidays will be empty, schedule still works
+      // All failed — holidays will be empty, schedule still works
     }
   }
 
