@@ -74,7 +74,7 @@
             <p class="schedule-meta">
               <%= s.event_type || 'Wedding' %>
               <% if (s.location) { %> &middot; <%= s.location %><% } %>
-              <% if (s.guests) { %> &middot; <%= s.guests %> guests<% } %>
+              <% if (false && s.guests) { %> &middot; <%= s.guests %> guests<% } %>
             </p>
             <p class="schedule-contact"><%= s.email %><%= s.phone ? ' · ' + s.phone : '' %></p>
           </div>

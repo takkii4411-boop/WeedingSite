@@ -7,20 +7,20 @@ const router = express.Router();
    The admin accepts/denies it from the dashboard. */
 router.post('/', async (req, res) => {
   const { name, email, phone, date, event_date, state, location, eventType, event_type,
-          budget, guests, message } = req.body;
+          budget, /* guests, */ message } = req.body;
   if (!name || !email || !message) {
     return res.status(400).json({ error: 'Name, email and message are required' });
   }
   const fullLocation = [state, location].filter(Boolean).join(', ') || location || null;
   try {
     db.prepare(
-      `INSERT INTO contacts (name, email, phone, event_type, event_date, location, budget, guests, message, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`
+      `INSERT INTO contacts (name, email, phone, event_type, event_date, location, budget, message, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')`
     ).run(
       name, email, phone || null,
       event_type || eventType || null,
       event_date || date || null,
-      fullLocation, budget || null, guests || null,
+      fullLocation, budget || null,
       message
     );
     await sendContactEmail({ name, email, phone, event_type, event_date, message });

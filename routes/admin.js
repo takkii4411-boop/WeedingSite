@@ -78,7 +78,7 @@ router.post('/inquiry/delete/:id', requireAdmin, (req, res) => {
 /* ---------------- Schedule (wedding dates) — FAST ---------------- */
 router.get('/schedule', requireAdmin, (req, res) => {
   const rows = db.prepare(`
-    SELECT id, name, email, phone, event_type, event_date, location, guests, status, created_at
+    SELECT id, name, email, phone, event_type, event_date, location, status, created_at
     FROM contacts
     WHERE event_date IS NOT NULL AND event_date != ''
     ORDER BY event_date ASC
