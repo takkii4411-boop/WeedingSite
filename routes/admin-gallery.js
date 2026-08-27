@@ -66,7 +66,7 @@ router.get('/', requireAdmin, async (req, res) => {
     event_date: req.query.event_date || '',
     location: req.query.location || ''
   };
-  res.render('admin/galleries', { galleries, currentBackend: backends.name, prefill });
+  res.render('admin/galleries', { galleries, currentBackend: 'telegram', prefill });
 });
 
 router.post('/create', requireAdmin, async (req, res) => {
