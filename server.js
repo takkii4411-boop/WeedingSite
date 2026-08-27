@@ -53,6 +53,7 @@ app.get('/gallery/:slug', async (req, res) => {
 
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/story.html', (req, res) => res.sendFile(path.join(__dirname, 'story.html')));
+app.get('/health', (req, res) => res.json({ status: 'ok', uptime: process.uptime() }));
 
 init().then(() => {
   app.listen(PORT, () => {
