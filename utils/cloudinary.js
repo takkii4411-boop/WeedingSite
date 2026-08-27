@@ -51,10 +51,11 @@ async function uploadAsset(filePath, originalName, resourceType, gallerySlug, cl
 /**
  * Delete from Cloudinary
  */
-async function deleteAsset(storageId) {
+async function deleteAsset(storageId, resourceType) {
   if (!storageId) return;
   try {
-    await cloudinary.uploader.destroy(storageId);
+    const opts = resourceType === 'video' ? { resource_type: 'video' } : {};
+    await cloudinary.uploader.destroy(storageId, opts);
   } catch (err) {
     console.error('Cloudinary delete failed:', err.message);
   }

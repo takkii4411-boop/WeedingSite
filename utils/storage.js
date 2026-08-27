@@ -109,10 +109,24 @@ async function uploadAsset(filePath, originalName, resourceType, gallerySlug, ba
 
 async function deleteAsset(storageId, backendHint) {
   if (!storageId) return;
-  // Skip invalid file_ids
   if (storageId === 'local' || storageId.length < 10) return;
-  const { impl } = getBackend(backendHint || process.env.STORAGE_BACKEND || 'telegram');
-  if (impl) return impl.deleteAsset(storageId);
+
+  if (backendHint) {
+    const { impl } = getBackend(backendHint);
+    if (impl) {
+      try { await impl.deleteAsset(storageId); } catch (e) { console.error(`[Storage] Delete from ${backendHint} failed:`, e.message); }
+      return;
+    }
+  }
+
+  const backends = ['telegram', 'r2', 'cloudinary'];
+  for (const name of backends) {
+    const impl = loadBackend(name);
+    if (impl && impl.isConfigured()) {
+      try { await impl.deleteAsset(storageId); console.log(`[Storage] Deleted from ${name}`); return; }
+      catch (e) { /* try next */ }
+    }
+  }
 }
 
 module.exports = { uploadAsset, deleteAsset, isConfigured, getBackend };
