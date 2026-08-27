@@ -33,7 +33,13 @@ function getBackend(name) {
     if (impl && impl.isConfigured()) return { name: 'telegram', impl };
   }
 
-  // Default: Telegram first, then R2, then Cloudinary
+  // Default: STORAGE_BACKEND env var ke hisaab se, phir Telegram, then R2, then Cloudinary
+  const envBackend = process.env.STORAGE_BACKEND;
+  if (envBackend) {
+    const impl = loadBackend(envBackend);
+    if (impl && impl.isConfigured()) return { name: envBackend, impl };
+  }
+
   const tg = loadBackend('telegram');
   if (tg && tg.isConfigured()) return { name: 'telegram', impl: tg };
 
@@ -65,7 +71,7 @@ function isConfigured() {
  * @param {string} clientName - client name for folder
  */
 async function uploadAsset(filePath, originalName, resourceType, gallerySlug, backendHint, clientName) {
-  const { name, impl } = getBackend(backendHint || 'telegram');
+  const { name, impl } = getBackend(backendHint || process.env.STORAGE_BACKEND || 'telegram');
 
   // Telegram 50MB limit — if oversized, try R2
   const fileSize = fs.statSync(filePath).size;
@@ -87,7 +93,7 @@ async function deleteAsset(storageId, backendHint) {
   if (!storageId) return;
   // Skip invalid file_ids
   if (storageId === 'local' || storageId.length < 10) return;
-  const { impl } = getBackend(backendHint || 'telegram');
+  const { impl } = getBackend(backendHint || process.env.STORAGE_BACKEND || 'telegram');
   if (impl) return impl.deleteAsset(storageId);
 }
 

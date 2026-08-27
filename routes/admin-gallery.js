@@ -76,7 +76,7 @@ router.post('/create', requireAdmin, async (req, res) => {
   await db.execute({
     sql: `INSERT INTO client_galleries (client_name, client_email, client_phone, event_type, event_date, location, slug, description, storage_backend)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    args: [client_name, client_email || null, client_phone || null, event_type || null, event_date || null, location || null, slug, description || null, storage_backend || 'telegram']
+    args: [client_name, client_email || null, client_phone || null, event_type || null, event_date || null, location || null, slug, description || null, storage_backend || process.env.STORAGE_BACKEND || 'telegram']
   });
   res.redirect('/admin/galleries/' + slug);
 });
@@ -96,7 +96,7 @@ router.post('/:slug/upload', requireAdmin, upload.array('images', 500), async (r
   if (!gallery) return res.status(404).json({ error: 'Gallery not found' });
   if (!req.files || req.files.length === 0) return res.status(400).json({ error: 'No files' });
 
-  const backend = gallery.storage_backend || 'r2';
+  const backend = gallery.storage_backend || process.env.STORAGE_BACKEND || 'r2';
   const countResult = await db.execute({ sql: 'SELECT COUNT(*) as c FROM client_gallery_images WHERE gallery_id = ?', args: [gallery.id] });
   const count = countResult.rows[0].c;
 
