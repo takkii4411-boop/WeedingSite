@@ -1,8 +1,8 @@
 /* ==========================================================================
-   HOLIDAYS — fetches Indian holidays from free APIs (no key needed).
-   Primary: indian-festival-api.vercel.app (40+ festivals, comprehensive)
-   Fallback: tallyfy.com (10 national holidays, reliable for any year)
-   Fallback 2: date.nager.at (international)
+   HOLIDAYS — Indian festivals & government holidays.
+   Primary: calendar-bharat (GitHub Pages JSON — 50+ festivals, no key)
+   Fallback: indian-festival-api.vercel.app (40+ festivals)
+   Fallback 2: tallyfy.com (10 national holidays)
    Caches to file + memory for instant reload.
    ========================================================================== */
 const https = require('https');
@@ -43,6 +43,13 @@ function fetchJSON(url) {
   });
 }
 
+function parseCalendarBharatDate(dateStr) {
+  const match = dateStr.match(/^(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d+),\s+(\d{4})/);
+  if (!match) return null;
+  const months = { January:'01', February:'02', March:'03', April:'04', May:'05', June:'06', July:'07', August:'08', September:'09', October:'10', November:'11', December:'12' };
+  return `${match[3]}-${months[match[1]]}-${match[2].padStart(2, '0')}`;
+}
+
 async function getHolidays(year, countryCode) {
   const cc = (countryCode || 'IN').toUpperCase();
   const key = `${year}-${cc}`;
@@ -59,20 +66,41 @@ async function getHolidays(year, countryCode) {
 
   let map = {};
 
+  /* --- Primary: calendar-bharat (50+ festivals + govt holidays, keyless) --- */
   if (cc === 'IN') {
-    /* Source 1: indian-festival-api (40+ festivals — Hindu, Muslim, Sikh, etc.) */
+    try {
+      const raw = await fetchJSON(`https://jayantur13.github.io/calendar-bharat/calendar/${year}.json`);
+      const yearData = raw[String(year)] || {};
+      Object.values(yearData).forEach(monthData => {
+        Object.entries(monthData).forEach(([dateStr, info]) => {
+          const type = (info.type || '').toLowerCase();
+          if (type.includes('festival') || type.includes('government')) {
+            const date = parseCalendarBharatDate(dateStr);
+            if (date) {
+              map[date] = { name: info.event, localName: info.event };
+            }
+          }
+        });
+      });
+    } catch (err) {}
+  }
+
+  /* --- Fallback 1: indian-festival-api (40+ festivals) --- */
+  if (Object.keys(map).length === 0 && cc === 'IN') {
     try {
       const raw = await fetchJSON('https://indian-festival-api.vercel.app/api/festivals');
       (raw.data || []).forEach(h => {
         const dateKey = 'date_' + year;
         const date = h[dateKey];
-        if (date) {
+        if (date && !map[date]) {
           map[date] = { name: h.name, localName: h.name };
         }
       });
     } catch (err) {}
+  }
 
-    /* Source 2: tallyfy.com (10 national holidays — adds any missing ones) */
+  /* --- Fallback 2: tallyfy.com (10 national holidays) --- */
+  if (Object.keys(map).length === 0 && cc === 'IN') {
     try {
       const raw = await fetchJSON(`https://tallyfy.com/national-holidays/api/IN/${year}.json`);
       (raw.holidays || []).forEach(h => {
@@ -84,7 +112,7 @@ async function getHolidays(year, countryCode) {
     } catch (err) {}
   }
 
-  /* Fallback for non-IN or if both above fail: date.nager.at */
+  /* --- Fallback 3: date.nager.at --- */
   if (Object.keys(map).length === 0) {
     try {
       const raw = await fetchJSON(`https://date.nager.at/api/v3/PublicHolidays/${year}/${cc}`);
