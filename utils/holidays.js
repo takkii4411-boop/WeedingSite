@@ -1,6 +1,6 @@
 /* ==========================================================================
    HOLIDAYS — fetches public holidays from free APIs (no key needed).
-   Primary: Indian Holiday Calendar API (calendar-api-d7a8.onrender.com)
+   Primary: tallyfy.com/national-holidays (static JSON, reliable)
    Fallback: date.nager.at (for India or other countries)
    Caches to file + memory for instant reload.
    ========================================================================== */
@@ -12,7 +12,6 @@ const cache = new Map();
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour memory
 const CACHE_FILE = path.join(__dirname, '..', 'data', 'holidays-cache.json');
 
-// Load file cache on startup
 let fileCache = {};
 try {
   if (fs.existsSync(CACHE_FILE)) {
@@ -30,7 +29,7 @@ function saveFileCache() {
 
 function fetchJSON(url) {
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error('Timeout')), 5000);
+    const timer = setTimeout(() => reject(new Error('Timeout')), 8000);
     https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
@@ -43,23 +42,15 @@ function fetchJSON(url) {
   });
 }
 
-/**
- * Get public holidays for a given year and country.
- * @param {number} year - e.g. 2026
- * @param {string} countryCode - ISO 3166-1 alpha-2 (default: 'IN')
- * @returns {Object} { 'YYYY-MM-DD': { name, localName } }
- */
 async function getHolidays(year, countryCode) {
   const cc = (countryCode || 'IN').toUpperCase();
   const key = `${year}-${cc}`;
 
-  // Memory cache check
   if (cache.has(key)) {
     const entry = cache.get(key);
     if (Date.now() - entry.ts < CACHE_TTL) return entry.data;
   }
 
-  // File cache check (instant)
   if (fileCache[key]) {
     cache.set(key, { data: fileCache[key], ts: Date.now() - CACHE_TTL + 60000 });
     return fileCache[key];
@@ -67,16 +58,17 @@ async function getHolidays(year, countryCode) {
 
   let map = {};
 
-  /* --- Try primary API (Indian Holiday Calendar) for India --- */
+  /* --- Primary: tallyfy.com (India only, static JSON, reliable) --- */
   if (cc === 'IN') {
     try {
-      const url = `https://calendar-api-d7a8.onrender.com/v1/holidays?country=IN&year=${year}`;
+      const url = `https://tallyfy.com/national-holidays/api/IN/${year}.json`;
       const raw = await fetchJSON(url);
-      (raw.data || []).forEach(h => {
-        map[h.date] = { name: h.name, localName: h.localName || h.name };
+      (raw.holidays || []).forEach(h => {
+        const d = h.observed_date || h.date;
+        map[d] = { name: h.name, localName: h.local_name || h.name };
       });
     } catch (err) {
-      console.log('Primary holiday API failed, trying fallback...');
+      // Primary down, try fallback
     }
   }
 
@@ -89,7 +81,7 @@ async function getHolidays(year, countryCode) {
         map[h.date] = { name: h.name, localName: h.localName || h.name };
       });
     } catch (err) {
-      console.error('Holiday fetch failed (both APIs):', err.message);
+      // Both failed — holidays will be empty, schedule still works
     }
   }
 
@@ -102,9 +94,6 @@ async function getHolidays(year, countryCode) {
   return map;
 }
 
-/**
- * Get holidays synchronously from cache (for fast page load)
- */
 function getHolidaysSync(year, countryCode) {
   const cc = (countryCode || 'IN').toUpperCase();
   const key = `${year}-${cc}`;
