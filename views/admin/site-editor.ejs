@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Site Editor - Studio Admin</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="admin-layout">
+    <%- include('sidebar') %>
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1>Site Editor</h1>
+        <p class="admin-sub">
+          Bulk view. For day-to-day edits use the inline editor:
+          log in, open the site, switch <b>Edit: On</b>, then click any text or photo.
+        </p>
+      </div>
+
+      <% if (saved) { %><div class="notice notice-ok">Text saved — refresh the landing page to see it live.</div><% } %>
+
+      <form method="POST" action="/admin/site/text" class="editor-form">
+        <section class="editor-section">
+          <h2>Text</h2>
+          <%
+            const groups = [];
+            TEXT_SLOTS.forEach(s => { if (!groups.includes(s.group)) groups.push(s.group); });
+            groups.forEach(groupName => {
+          %>
+          <h3 class="editor-group"><%= groupName %></h3>
+          <% TEXT_SLOTS.filter(s => s.group === groupName).forEach(slot => { %>
+          <div class="editor-field">
+            <label for="t-<%= slot.key %>"><%= slot.label %></label>
+            <% if (slot.type === 'textarea') { %>
+            <textarea id="t-<%= slot.key %>" name="<%= slot.key %>" rows="3"><%= text[slot.key] || '' %></textarea>
+            <% } else { %>
+            <input type="text" id="t-<%= slot.key %>" name="<%= slot.key %>" value="<%= text[slot.key] || '' %>">
+            <% } %>
+          </div>
+          <% }) %>
+          <% }) %>
+          <button type="submit" class="btn btn-primary">Save Text</button>
+        </section>
+      </form>
+
+      <section class="editor-section">
+        <h2>Photos &amp; Video</h2>
+        <p class="admin-sub">Uploads go to Cloudflare R2 (local storage as fallback). Replacing a slot deletes the old file.</p>
+        <div class="media-grid">
+          <% MEDIA_SLOTS.forEach(slot => { %>
+          <div class="media-card" data-slot="<%= slot.slot %>">
+            <div class="media-preview" data-slot="<%= slot.slot %>">
+              <% if (media[slot.slot] && media[slot.slot].resource_type === 'video') { %>
+              <video src="<%= media[slot.slot].url %>" muted></video>
+              <% } else if (media[slot.slot]) { %>
+              <img src="<%= media[slot.slot].url %>" alt="">
+              <% } else if (slot.resourceType === 'video' && slot.defaultUrl) { %>
+              <video src="<%= slot.defaultUrl %>" muted style="opacity:0.6"></video>
+              <% } else if (slot.defaultUrl) { %>
+              <img src="<%= slot.defaultUrl %>" alt="default" style="opacity:0.6">
+              <% } else { %>
+              <span class="media-empty">default</span>
+              <% } %>
+            </div>
+            <div class="media-info">
+              <label class="media-label"><%= slot.label %></label>
+              <div class="media-actions">
+                <label class="btn btn-sm btn-ghost media-upload-btn">
+                  Upload
+                  <input type="file" accept="<%= slot.accept %>" hidden>
+                </label>
+                <% if (media[slot.slot]) { %>
+                <button type="button" class="btn btn-sm btn-danger media-reset-btn">Reset</button>
+                <% } %>
+              </div>
+              <span class="media-status" data-slot="<%= slot.slot %>"></span>
+            </div>
+          </div>
+          <% }) %>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    document.querySelectorAll('.media-card').forEach(function (card) {
+      var slot = card.dataset.slot;
+      var input = card.querySelector('input[type="file"]');
+      var status = card.querySelector('.media-status');
+
+      input.addEventListener('change', function () {
+        if (!input.files.length) return;
+        var fd = new FormData();
+        fd.append('media', input.files[0]);
+        status.textContent = 'Uploading…';
+        fetch('/admin/site/media/' + slot, { method: 'POST', body: fd })
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            if (!d.success) throw new Error(d.error || 'Upload failed');
+            status.textContent = 'Uploaded ✓';
+            setTimeout(function () { location.reload(); }, 600);
+          })
+          .catch(function (e) { status.textContent = e.message; });
+      });
+
+      var resetBtn = card.querySelector('.media-reset-btn');
+      if (resetBtn) {
+        resetBtn.addEventListener('click', function () {
+          if (!confirm('Reset this slot? The uploaded file will be deleted.')) return;
+          status.textContent = 'Resetting…';
+          fetch('/admin/site/media/' + slot + '/reset', { method: 'POST' })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+              if (d.success) location.reload();
+            });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

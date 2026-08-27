@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Schedule - Studio Admin</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    .cal-wrap { background: var(--card, #1a1a1a); border-radius: 12px; padding: 24px; margin-bottom: 32px; }
+    .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .cal-header h3 { margin: 0; font-size: 18px; color: #fff; }
+    .cal-nav { display: flex; gap: 8px; }
+    .cal-nav button { background: #2a2a2a; border: 1px solid #3a3a3a; color: #ccc; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+    .cal-nav button:hover { background: #3a3a3a; color: #fff; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .cal-day-head { text-align: center; font-size: 11px; font-weight: 600; color: #666; padding: 8px 0; text-transform: uppercase; }
+    .cal-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; font-size: 14px; color: #888; position: relative; cursor: default; transition: all 0.15s; }
+    .cal-day.empty { background: transparent; }
+    .cal-day.today { border: 2px solid #c2a06b; color: #fff; font-weight: 600; }
+    .cal-day.past { color: #555; }
+    .cal-day.accepted { background: #1a4d2e; color: #4ade80; font-weight: 600; cursor: pointer; }
+    .cal-day.accepted:hover { background: #22663d; box-shadow: 0 0 0 2px #4ade80; }
+    .cal-day.pending { background: #4d3a1a; color: #fbbf24; font-weight: 600; cursor: pointer; }
+    .cal-day.pending:hover { background: #665022; box-shadow: 0 0 0 2px #fbbf24; }
+    .cal-day.denied { background: #4d1a1a; color: #f87171; font-weight: 600; cursor: pointer; text-decoration: line-through; }
+    .cal-day.denied:hover { background: #662222; box-shadow: 0 0 0 2px #f87171; }
+    .cal-day.holiday { background: #2d1a4d; color: #a78bfa; font-weight: 500; }
+    .cal-day.holiday:hover { background: #3d2266; box-shadow: 0 0 0 2px #a78bfa; }
+    .cal-day .cal-dot { width: 6px; height: 6px; border-radius: 50%; position: absolute; bottom: 4px; }
+    .cal-day.accepted .cal-dot { background: #4ade80; }
+    .cal-day.pending .cal-dot { background: #fbbf24; }
+    .cal-day.denied .cal-dot { background: #f87171; }
+    .cal-legend { display: flex; gap: 20px; margin-top: 16px; padding-top: 12px; border-top: 1px solid #2a2a2a; }
+    .cal-legend span { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #888; }
+    .cal-legend .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .cal-legend .dot-g { background: #4ade80; }
+    .cal-legend .dot-y { background: #fbbf24; }
+    .cal-legend .dot-r { background: #f87171; }
+    .cal-legend .dot-p { background: #a78bfa; }
+    .schedule-side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+    .cal-tooltip { display: none; position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: #222; border: 1px solid #444; border-radius: 6px; padding: 8px 12px; font-size: 12px; color: #fff; white-space: nowrap; z-index: 10; pointer-events: none; }
+    .cal-day:hover .cal-tooltip { display: block; }
+    .cal-tooltip strong { display: block; margin-bottom: 2px; }
+    .cal-tooltip span { color: #aaa; }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <%- include('sidebar') %>
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1>Schedule</h1>
+        <p class="admin-sub">Every inquiry with a wedding date, soonest first.</p>
+      </div>
+
+      <!-- Calendar -->
+      <div class="cal-wrap" id="calendar"></div>
+
+      <% if (schedule.length === 0) { %>
+      <div class="empty-state"><p>No scheduled weddings yet — dates appear here when inquiries include one.</p></div>
+      <% } else { %>
+      <div class="schedule-list">
+        <% schedule.forEach(s => { %>
+        <div class="schedule-row status-<%= s.status %>">
+          <div class="schedule-date <%= s.days_until >= 0 && s.days_until <= 30 ? 'is-soon' : '' %>">
+            <span class="sd-day"><%= new Date(s.event_date + 'T00:00:00').getDate() %></span>
+            <span class="sd-mon"><%= new Date(s.event_date + 'T00:00:00').toLocaleString('en', { month: 'short' }).toUpperCase() %></span>
+            <span class="sd-year"><%= new Date(s.event_date + 'T00:00:00').getFullYear() %></span>
+          </div>
+          <div class="schedule-body">
+            <h3><%= s.name %></h3>
+            <p class="schedule-meta">
+              <%= s.event_type || 'Wedding' %>
+              <% if (s.location) { %> &middot; <%= s.location %><% } %>
+              <% if (s.guests) { %> &middot; <%= s.guests %> guests<% } %>
+            </p>
+            <p class="schedule-contact"><%= s.email %><%= s.phone ? ' · ' + s.phone : '' %></p>
+          </div>
+          <div class="schedule-side">
+            <span class="badge badge-<%= s.status %>"><%= s.status.toUpperCase() %></span>
+            <span class="schedule-countdown <%= s.days_until < 0 ? 'is-past' : '' %>">
+              <%= s.days_until < 0 ? Math.abs(s.days_until) + ' days ago' :
+                   s.days_until === 0 ? 'TODAY' : 'in ' + s.days_until + ' days' %>
+            </span>
+            <a href="/admin/galleries?client_name=<%= encodeURIComponent(s.name) %>&client_email=<%= encodeURIComponent(s.email || '') %>&client_phone=<%= encodeURIComponent(s.phone || '') %>&event_type=<%= encodeURIComponent(s.event_type || '') %>&event_date=<%= encodeURIComponent(s.event_date || '') %>&location=<%= encodeURIComponent(s.location || '') %>" class="btn btn-primary btn-sm" style="margin-top:8px;text-decoration:none">+ Create Gallery</a>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+      <% } %>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      var dates = <%- JSON.stringify(calendarDates) %>;
+      var holidays = <%- JSON.stringify(holidays) %>;
+      var todayStr = '<%= today %>';
+
+      var current = new Date();
+      var viewYear = current.getFullYear();
+      var viewMonth = current.getMonth();
+
+      var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      var dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+      function render() {
+        var firstDay = new Date(viewYear, viewMonth, 1).getDay();
+        var daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+        var today = new Date();
+        var todayY = today.getFullYear(), todayM = today.getMonth(), todayD = today.getDate();
+
+        var html = '<div class="cal-header">';
+        html += '<h3>' + monthNames[viewMonth] + ' ' + viewYear + '</h3>';
+        html += '<div class="cal-nav">';
+        html += '<button id="calPrev" aria-label="Previous month">&#8249;</button>';
+        html += '<button id="calNext" aria-label="Next month">&#8250;</button>';
+        html += '</div></div>';
+        html += '<div class="cal-grid">';
+
+        dayNames.forEach(function (d) { html += '<div class="cal-day-head">' + d + '</div>'; });
+
+        for (var i = 0; i < firstDay; i++) html += '<div class="cal-day empty"></div>';
+
+        for (var d = 1; d <= daysInMonth; d++) {
+          var dateStr = viewYear + '-' + String(viewMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+          var isToday = (viewYear === todayY && viewMonth === todayM && d === todayD);
+          var isPast = new Date(viewYear, viewMonth, d) < new Date(todayY, todayM, todayD) && !isToday;
+          var info = dates[dateStr];
+          var holiday = holidays[dateStr];
+
+          var cls = 'cal-day';
+          if (isToday) cls += ' today';
+          else if (isPast) cls += ' past';
+          if (info) cls += ' ' + info.status;
+          else if (holiday) cls += ' holiday';
+
+          html += '<div class="' + cls + '" data-date="' + dateStr + '">';
+          html += '<span>' + d + '</span>';
+          if (info) {
+            html += '<div class="cal-dot"></div>';
+            html += '<div class="cal-tooltip"><strong>' + info.name + '</strong><span>' + (info.event_type || 'Wedding') + ' · ' + info.status.toUpperCase() + '</span></div>';
+          } else if (holiday) {
+            html += '<div class="cal-dot" style="background:#a78bfa"></div>';
+            html += '<div class="cal-tooltip"><strong>' + holiday.localName + '</strong><span>Holiday</span></div>';
+          }
+          html += '</div>';
+        }
+
+        html += '</div>';
+        html += '<div class="cal-legend">';
+        html += '<span><div class="dot dot-g"></div>Accepted</span>';
+        html += '<span><div class="dot dot-y"></div>Pending</span>';
+        html += '<span><div class="dot dot-r"></div>Denied</span>';
+        html += '<span><div class="dot dot-p"></div>Holiday</span>';
+        html += '</div>';
+
+        document.getElementById('calendar').innerHTML = html;
+
+        document.getElementById('calPrev').onclick = function () { viewMonth--; if (viewMonth < 0) { viewMonth = 11; viewYear--; } render(); };
+        document.getElementById('calNext').onclick = function () { viewMonth++; if (viewMonth > 11) { viewMonth = 0; viewYear++; } render(); };
+      }
+
+      render();
+    })();
+  </script>
+</body>
+</html>

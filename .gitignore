@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Environment variables (SECRETS)
+.env
+.env.local
+.env.*.local
+
+# Database files
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# Uploads (user-generated content)
+uploads/
+
+# Logs
+*.log
+logs/
+
+# Migration artifacts
+r2-url-map.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build artifacts
+dist/
+build/

@@ -1,0 +1,25 @@
+{
+  "name": "wedding-portfolio",
+  "version": "1.0.0",
+  "description": "Cinematic wedding filmmaker site with admin panel, inline CMS and Cloudflare R2 media storage",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.750.0",
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^12.11.1",
+    "cloudinary": "^2.10.0",
+    "dotenv": "^17.4.2",
+    "ejs": "^6.0.1",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "form-data": "^4.0.6",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^9.0.3"
+  }
+}

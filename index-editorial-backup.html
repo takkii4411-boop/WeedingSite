@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Isabella Marchetti — Fine-Art Wedding Photography</title>
+  <meta name="description" content="Isabella Marchetti is a fine-art wedding photographer capturing honest, cinematic love stories across Italy and worldwide. Capturing Moments. Preserving Forever." />
+  <meta name="theme-color" content="#0f0e0c" />
+  <link rel="canonical" href="https://www.isabellamarchetti.com/" />
+
+  <!-- Open Graph / Twitter -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Isabella Marchetti — Fine-Art Wedding Photography" />
+  <meta property="og:description" content="Capturing Moments. Preserving Forever. Fine-art wedding photography for couples who feel deeply." />
+  <meta property="og:image" content="https://images.unsplash.com/photo-1519741497674-611481863552?q=78&w=1200&auto=format&fit=crop" />
+  <meta property="og:url" content="https://www.isabellamarchetti.com/" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='8' fill='%230f0e0c'/%3E%3Ctext x='32' y='42' font-family='Georgia,serif' font-size='30' fill='%23c2a06b' text-anchor='middle'%3EIM%3C/text%3E%3C/svg%3E" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <link rel="preload" as="image" href="https://images.unsplash.com/photo-1519741497674-611481863552?q=75&w=2000&auto=format&fit=crop" fetchpriority="high" />
+  <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
+
+  <link rel="stylesheet" href="css/styles.css" />
+  <script>document.documentElement.classList.add("js");</script>
+
+  <!-- Structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    "name": "Isabella Marchetti Photography",
+    "description": "Fine-art wedding photography for couples who feel deeply.",
+    "url": "https://www.isabellamarchetti.com/",
+    "email": "hello@isabellamarchetti.com",
+    "address": { "@type": "PostalAddress", "addressLocality": "Florence", "addressCountry": "IT" },
+    "areaServed": "Worldwide",
+    "founder": { "@type": "Person", "name": "Isabella Marchetti", "jobTitle": "Wedding Photographer" }
+  }
+  </script>
+</head>
+
+<body>
+  <a class="skip-link" href="#about">Skip to content</a>
+
+  <!-- ================= NAVIGATION ================= -->
+  <header class="nav" id="nav">
+    <div class="nav__inner">
+      <a class="nav__brand" href="#home" aria-label="Isabella Marchetti — home">
+        <span class="nav__monogram">IM</span>
+        <span class="nav__name">Isabella&nbsp;Marchetti</span>
+      </a>
+
+      <nav class="nav__links" id="navLinks" aria-label="Primary">
+        <a href="#home">Home</a>
+        <a href="#about">About</a>
+        <a href="#stories">Stories</a>
+        <a href="#gallery">Gallery</a>
+        <a href="#services">Services</a>
+        <a href="#contact">Contact</a>
+      </nav>
+
+      <button class="nav__burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+        <span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile menu overlay -->
+  <div class="menu" id="mobileMenu" role="dialog" aria-modal="true" aria-label="Menu" hidden>
+    <nav class="menu__links" aria-label="Mobile">
+      <a href="#home"><em>01</em>Home</a>
+      <a href="#about"><em>02</em>About</a>
+      <a href="#stories"><em>03</em>Stories</a>
+      <a href="#gallery"><em>04</em>Gallery</a>
+      <a href="#services"><em>05</em>Services</a>
+      <a href="#contact"><em>06</em>Contact</a>
+    </nav>
+    <p class="menu__foot">hello@isabellamarchetti.com</p>
+  </div>
+
+  <main id="main">
+
+    <!-- ================= HERO + CAMERA TRANSITION (pinned wrapper) ================= -->
+    <div class="intro" id="home">
+      <section class="hero" aria-label="Introduction">
+        <div class="hero__media">
+          <img id="heroImg" src="https://images.unsplash.com/photo-1519741497674-611481863552?q=75&w=2000&auto=format&fit=crop"
+               alt="Newlywed couple sharing a quiet moment beneath a veil at golden hour"
+               fetchpriority="high" decoding="async" />
+          <div class="hero__shade"></div>
+        </div>
+
+        <div class="hero__content container">
+          <p class="hero__kicker" data-hero-fade>Fine-Art Wedding Photography</p>
+          <h1 class="hero__title" data-hero-fade><span class="hero__line"><span>Isabella</span></span><span class="hero__line"><span>Marchetti</span></span></h1>
+          <p class="hero__tagline" data-hero-fade>Capturing Moments. Preserving&nbsp;Forever.</p>
+        </div>
+
+        <div class="hero__scrollcue" data-hero-fade>
+          <span>Scroll to Explore</span>
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 4v14m0 0l-5-5m5 5l5-5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </div>
+      </section>
+
+      <!-- Camera transition stage (signature animation) -->
+      <div class="camera-stage" id="cameraStage" aria-hidden="true">
+        <div class="camera-flash" id="cameraFlash"></div>
+
+        <svg class="camera" id="cameraSvg" viewBox="0 0 320 220" fill="none" aria-hidden="true">
+          <rect class="cam-draw" x="20" y="60" width="280" height="140" rx="18"/>
+          <path class="cam-draw" d="M110 60 L126 34 h68 l16 26"/>
+          <circle class="cam-draw cam-slow" cx="160" cy="130" r="52"/>
+          <circle class="cam-draw cam-slow" cx="160" cy="130" r="36"/>
+          <circle class="cam-dot" cx="160" cy="130" r="10"/>
+          <circle class="cam-draw" cx="258" cy="92" r="9"/>
+          <line class="cam-draw" x1="44" y1="84" x2="84" y2="84"/>
+        </svg>
+
+        <div class="frame-grid" id="frameGrid">
+          <i class="gl gl-v1"></i><i class="gl gl-v2"></i><i class="gl gl-h"></i>
+        </div>
+
+        <div class="panels" id="panels"></div>
+
+        <p class="stage-caption" id="stageCaption">Every frame tells a story.</p>
+      </div>
+    </div>
+
+    <!-- Static fallback divider shown when motion is reduced -->
+    <div class="intro-divider" id="introDivider" hidden>
+      <svg viewBox="0 0 320 220" fill="none" aria-hidden="true" class="intro-divider__cam">
+        <rect x="20" y="60" width="280" height="140" rx="18"/><path d="M110 60 L126 34 h68 l16 26"/><circle cx="160" cy="130" r="52"/><circle cx="160" cy="130" r="36"/><circle cx="258" cy="92" r="9"/><line x1="44" y1="84" x2="84" y2="84"/>
+      </svg>
+      <p>Every frame tells a story.</p>
+    </div>
+
+    <!-- ================= ABOUT ================= -->
+    <section class="about section" id="about">
+      <div class="container about__grid">
+        <figure class="about__portrait" data-reveal="left">
+          <img src="https://images.unsplash.com/photo-1554080353-a576cf803bda?q=78&w=1000&auto=format&fit=crop"
+               alt="Portrait of Isabella Marchetti holding her camera" loading="lazy" decoding="async" />
+          <figcaption>Isabella Marchetti — Founder &amp; Photographer</figcaption>
+        </figure>
+
+        <div class="about__body">
+          <p class="kicker" data-reveal>About</p>
+          <h2 class="h2" data-reveal>Every Love Story Deserves to&nbsp;Be&nbsp;Remembered.</h2>
+
+          <div class="about__bio" data-reveal-group data-reveal>
+            <p>I am a fine-art wedding photographer devoted to the quiet, unrepeatable moments that make a marriage begin. For over twelve years I have followed light across Tuscan hillsides, candlelit chapels and windswept coastlines, photographing the way love actually feels rather than how it is posed.</p>
+            <p>My approach is calm, editorial and unhurried. I believe the most powerful photographs are never directed into existence — they are noticed, anticipated and preserved.</p>
+          </div>
+
+          <blockquote class="about__philosophy" data-reveal>
+            “Honest light. True emotion. Images made to be printed, framed and shown to grandchildren.”
+          </blockquote>
+
+          <dl class="about__facts" data-reveal-group data-reveal>
+            <div><dt>Experience</dt><dd>12+ years · 300+ weddings</dd></div>
+            <div><dt>Location</dt><dd>Florence, Italy — available worldwide</dd></div>
+            <div><dt>Specialties</dt><dd>Editorial · Destination · Fine-art portraiture · Elopements</dd></div>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SERVICES ================= -->
+    <section class="services section section--tinted" id="services">
+      <div class="container">
+        <header class="section-head" data-reveal-group data-reveal>
+          <p class="kicker">What I Offer</p>
+          <h2 class="h2">Services</h2>
+        </header>
+        <div class="services__grid" id="servicesGrid"><!-- rendered by JS --></div>
+      </div>
+    </section>
+
+    <!-- ================= STORIES ================= -->
+    <section class="stories section section--dark" id="stories">
+      <div class="container">
+        <header class="section-head" data-reveal-group data-reveal>
+          <p class="kicker">Featured Work</p>
+          <h2 class="h2">Stories We've Captured</h2>
+        </header>
+        <div class="stories__list" id="storiesList"><!-- rendered by JS --></div>
+      </div>
+    </section>
+
+    <!-- ================= GALLERY ================= -->
+    <section class="gallery section" id="gallery">
+      <div class="container-wide">
+        <header class="section-head" data-reveal-group data-reveal>
+          <p class="kicker">Portfolio</p>
+          <h2 class="h2">A Collection of Beautiful Moments</h2>
+        </header>
+        <div class="masonry" id="masonry"><!-- rendered by JS --></div>
+      </div>
+    </section>
+
+    <!-- ================= PHOTO WALL ================= -->
+    <section class="wall section section--dark" id="wall">
+      <div class="container-wide">
+        <header class="section-head" data-reveal-group data-reveal>
+          <p class="kicker">The Studio Wall</p>
+          <h2 class="h2">Moments Worth Keeping.</h2>
+        </header>
+        <div class="wall__board" id="wallBoard" aria-label="Photo wall — click any photograph to view it larger"><!-- rendered by JS --></div>
+      </div>
+    </section>
+
+    <!-- ================= TESTIMONIALS ================= -->
+    <section class="testimonials section section--tinted" id="testimonials">
+      <div class="container">
+        <header class="section-head section-head--center" data-reveal-group data-reveal>
+          <p class="kicker">Kind Words</p>
+          <h2 class="h2">From Our Couples</h2>
+        </header>
+
+        <div class="carousel" id="carousel" data-reveal
+             role="region" aria-roledescription="carousel" aria-label="Testimonials">
+          <div class="carousel__track" id="carouselTrack"><!-- rendered by JS --></div>
+          <div class="carousel__controls">
+            <button class="carousel__btn" id="carPrev" aria-label="Previous testimonial">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            </button>
+            <span class="carousel__count" id="carCount" aria-live="polite">01 / 04</span>
+            <button class="carousel__btn" id="carNext" aria-label="Next testimonial">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= FINAL CTA ================= -->
+    <section class="cta" aria-label="Work with me">
+      <div class="cta__bg" style="background-image:url('https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?q=70&w=2000&auto=format&fit=crop')" role="img" aria-label="Guests celebrating beneath sparklers at an evening reception"></div>
+      <div class="cta__inner container" data-reveal-group data-reveal>
+        <h2 class="cta__heading">Your Story Is Waiting to Be&nbsp;Captured.</h2>
+        <p class="cta__sub">Let's create photographs you'll want to look back on for the rest of your life.</p>
+        <a class="btn btn--light" href="#contact">Let's Talk</a>
+      </div>
+    </section>
+
+    <!-- ================= CONTACT ================= -->
+    <section class="contact section" id="contact">
+      <div class="container contact__grid">
+        <div class="contact__aside" data-reveal-group data-reveal>
+          <p class="kicker">Inquire</p>
+          <h2 class="h2">Let's Create Something Beautiful Together.</h2>
+          <p class="contact__intro">Tell me about your day. I take a limited number of weddings each year so every couple receives my full attention.</p>
+          <ul class="contact__info">
+            <li><span>Email</span><a href="mailto:hello@isabellamarchetti.com">hello@isabellamarchetti.com</a></li>
+            <li><span>Phone</span><a href="tel:+393330000000">+39 333 000 0000</a></li>
+            <li><span>Studio</span>Via dei Serragli 14, Florence</li>
+          </ul>
+        </div>
+
+        <form class="form" id="inquiryForm" novalidate>
+          <div class="form__row">
+            <div class="field">
+              <label for="fName">Full Name *</label>
+              <input type="text" id="fName" name="name" autocomplete="name" required />
+              <p class="field__error" id="err-fName" hidden>Please enter your full name.</p>
+            </div>
+            <div class="field">
+              <label for="fEmail">Email Address *</label>
+              <input type="email" id="fEmail" name="email" autocomplete="email" required />
+              <p class="field__error" id="err-fEmail" hidden>Please enter a valid email address.</p>
+            </div>
+          </div>
+
+          <div class="form__row">
+            <div class="field">
+              <label for="fPhone">Phone Number</label>
+              <input type="tel" id="fPhone" name="phone" autocomplete="tel" />
+              <p class="field__error" id="err-fPhone" hidden>Please enter a valid phone number.</p>
+            </div>
+            <div class="field">
+              <label for="fDate">Wedding Date *</label>
+              <input type="date" id="fDate" name="date" required />
+              <p class="field__error" id="err-fDate" hidden>Please choose your wedding date.</p>
+            </div>
+          </div>
+
+          <div class="form__row">
+            <div class="field">
+              <label for="fLocation">Wedding Location *</label>
+              <input type="text" id="fLocation" name="location" placeholder="City, Country" required />
+              <p class="field__error" id="err-fLocation" hidden>Where is the celebration taking place?</p>
+            </div>
+            <div class="field">
+              <label for="fType">Type of Event *</label>
+              <select id="fType" name="eventType" required>
+                <option value="" selected disabled>Select…</option>
+                <option>Wedding</option><option>Elopement</option><option>Engagement</option>
+                <option>Pre-Wedding Session</option><option>Couple Portraits</option><option>Other</option>
+              </select>
+              <p class="field__error" id="err-fType" hidden>Please select an event type.</p>
+            </div>
+          </div>
+
+          <div class="form__row">
+            <div class="field">
+              <label for="fBudget">Estimated Budget</label>
+              <select id="fBudget" name="budget">
+                <option value="" selected disabled>Select…</option>
+                <option>Under €2,500</option><option>€2,500 – €5,000</option>
+                <option>€5,000 – €8,000</option><option>€8,000+</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="fGuests">Number of Guests</label>
+              <select id="fGuests" name="guests">
+                <option value="" selected disabled>Select…</option>
+                <option>Under 20</option><option>20 – 60</option><option>60 – 120</option><option>120 – 200</option><option>200+</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="fMessage">Message *</label>
+            <textarea id="fMessage" name="message" rows="5" placeholder="Tell me about the two of you, your plans, and what matters most…" required></textarea>
+            <p class="field__error" id="err-fMessage" hidden>A few words help me reply properly — what do you have planned?</p>
+          </div>
+
+          <!-- honeypot -->
+          <div class="hp" aria-hidden="true"><label for="fCompany">Company</label><input type="text" id="fCompany" name="company" tabindex="-1" autocomplete="off" /></div>
+
+          <button type="submit" class="btn btn--dark btn--wide" id="submitBtn">Send Inquiry</button>
+          <p class="form__status" id="formStatus" role="status" aria-live="polite"></p>
+        </form>
+
+        <div class="form-success" id="formSuccess" hidden tabindex="-1">
+          <svg viewBox="0 0 52 52" width="56" height="56" aria-hidden="true"><circle cx="26" cy="26" r="24" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M15 27l7.5 7L37 19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <h3>Thank you — your inquiry is on its way.</h3>
+          <p>I read every message personally and will reply within two business days. In the meantime, browse the stories above and imagine yours among them.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="footer">
+    <div class="container footer__inner">
+      <p class="footer__mark">IM</p>
+      <nav class="footer__social" aria-label="Social media">
+        <a href="#">Instagram</a><a href="#">Vimeo</a><a href="#">Pinterest</a>
+      </nav>
+      <p class="footer__note">© <span id="year">2026</span> Isabella Marchetti. All photographs remain the property of their couples.</p>
+    </div>
+  </footer>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Photograph viewer" hidden>
+    <button class="lightbox__close" id="lbClose" aria-label="Close viewer">&#10005;</button>
+    <button class="lightbox__arrow lightbox__arrow--prev" id="lbPrev" aria-label="Previous photograph">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+    </button>
+    <figure class="lightbox__fig">
+      <img id="lbImg" src="" alt="" decoding="async" />
+      <figcaption><span id="lbAlt"></span><span id="lbCount"></span></figcaption>
+    </figure>
+    <button class="lightbox__arrow lightbox__arrow--next" id="lbNext" aria-label="Next photograph">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+
+  <!-- GSAP (graceful fallback if unavailable) -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
+
+  <script src="js/content.js" defer></script>
+  <script src="js/render.js" defer></script>
+  <script src="js/lightbox.js" defer></script>
+  <script src="js/camera.js" defer></script>
+  <script src="js/main.js" defer></script>
+  <script src="js/form.js" defer></script>
+</body>
+</html>

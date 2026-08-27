@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Inquiries - Studio Admin</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="admin-layout">
+    <%- include('sidebar') %>
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1>Inquiries</h1>
+        <p class="admin-sub">Contact form submissions from the landing page.</p>
+      </div>
+
+      <div class="filter-tabs">
+        <a href="/admin/inquiries" class="tab <%= filter === 'all' ? 'active' : '' %>">All <b><%= counts.all %></b></a>
+        <a href="/admin/inquiries?status=pending" class="tab <%= filter === 'pending' ? 'active' : '' %>">Pending <b><%= counts.pending %></b></a>
+        <a href="/admin/inquiries?status=accepted" class="tab <%= filter === 'accepted' ? 'active' : '' %>">Accepted <b><%= counts.accepted %></b></a>
+        <a href="/admin/inquiries?status=denied" class="tab <%= filter === 'denied' ? 'active' : '' %>">Denied <b><%= counts.denied %></b></a>
+      </div>
+
+      <% if (inquiries.length === 0) { %>
+      <div class="empty-state"><p>No inquiries here yet.</p></div>
+      <% } else { %>
+      <div class="inquiry-list">
+        <% inquiries.forEach(c => { %>
+        <article class="inquiry-card status-<%= c.status %>" data-id="<%= c.id %>">
+          <div class="inquiry-head">
+            <div>
+              <h3 class="inquiry-name"><%= c.name %></h3>
+              <span class="inquiry-when"><%= new Date(c.created_at).toLocaleString() %></span>
+            </div>
+            <span class="badge badge-<%= c.status %>"><%= c.status.toUpperCase() %></span>
+          </div>
+
+          <div class="inquiry-grid">
+            <div><span>Email</span><a href="mailto:<%= c.email %>"><%= c.email %></a></div>
+            <div><span>Phone</span><%= c.phone || '-' %></div>
+            <div><span>Event</span><%= c.event_type || '-' %></div>
+            <div><span>Date</span><%= c.event_date || '-' %></div>
+            <div><span>Location</span><%= c.location || '-' %></div>
+            <div><span>Budget</span><%= c.budget || '-' %></div>
+            <div><span>Guests</span><%= c.guests || '-' %></div>
+          </div>
+
+          <p class="inquiry-msg"><%= c.message %></p>
+
+          <div class="inquiry-actions">
+            <button class="btn btn-sm btn-accept <%= c.status === 'accepted' ? 'is-active' : '' %>"
+                    data-status="accepted">Accept</button>
+            <button class="btn btn-sm btn-deny <%= c.status === 'denied' ? 'is-active' : '' %>"
+                    data-status="denied">Deny</button>
+            <button class="btn btn-sm btn-ghost <%= c.status === 'pending' ? 'is-active' : '' %>"
+                    data-status="pending">Reset</button>
+            <form action="/admin/inquiry/delete/<%= c.id %>" method="POST" class="inline-form"
+                  onsubmit="return confirm('Delete this inquiry permanently?')">
+              <button class="btn btn-sm btn-danger">Delete</button>
+            </form>
+          </div>
+        </article>
+        <% }) %>
+      </div>
+      <% } %>
+    </main>
+  </div>
+
+  <script>
+    document.querySelectorAll('.inquiry-actions [data-status]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = btn.closest('.inquiry-card').dataset.id;
+        fetch('/admin/inquiry/status/' + id, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: btn.dataset.status })
+        }).then(function (r) { return r.json(); })
+          .then(function (d) {
+            if (d.success) location.reload();
+          });
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Dashboard - Studio Admin</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    .mobile-brand { display: none; background: linear-gradient(135deg, #0f0e0c 0%, #1c1915 100%); padding: 16px 20px; text-align: center; margin-bottom: -1px; }
+    .mobile-brand h2 { font-family: Georgia, serif; font-size: 1.3rem; color: #c2a06b; letter-spacing: 0.05em; }
+    .mobile-brand span { font-size: 0.75rem; color: #777; display: block; margin-top: 2px; }
+
+    .welcome-banner { background: linear-gradient(135deg, #0f0e0c 0%, #1c1915 100%); border-radius: 16px; padding: 28px 32px; margin-bottom: 24px; color: #fff; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+    .welcome-text h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+    .welcome-text h1 span { color: #c2a06b; }
+    .welcome-text p { color: #888; font-size: 0.88rem; }
+    .welcome-right { text-align: right; }
+    .welcome-right .clock { font-size: 2.2rem; font-weight: 700; color: #c2a06b; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+    .welcome-right .date { font-size: 0.85rem; color: #999; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 4px; }
+
+    .dash-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .dash-stat { background: #fff; border-radius: 14px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 16px; transition: transform 0.2s, box-shadow 0.2s; text-decoration: none; color: inherit; }
+    .dash-stat:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+    .dash-stat .icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+    .dash-stat .icon.gold { background: linear-gradient(135deg, #fef3c7, #fde68a); }
+    .dash-stat .icon.green { background: linear-gradient(135deg, #dcfce7, #bbf7d0); }
+    .dash-stat .icon.red { background: linear-gradient(135deg, #fee2e2, #fecaca); }
+    .dash-stat .icon.blue { background: linear-gradient(135deg, #dbeafe, #bfdbfe); }
+    .dash-stat .info .num { font-size: 1.6rem; font-weight: 700; color: #1a1a1a; line-height: 1; }
+    .dash-stat .info .lbl { font-size: 0.78rem; color: #888; margin-top: 2px; }
+    .dash-stat.pulse { border: 2px solid #c2a06b; }
+
+    .dash-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px; }
+    .dash-card { background: #fff; border-radius: 14px; padding: 22px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
+    .dash-card h2 { font-size: 1rem; font-weight: 700; color: #1a1a1a; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+    .dash-card h2 a { font-size: 0.78rem; color: #c2a06b; text-decoration: none; font-weight: 600; }
+
+    .recent-item { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid #f5f5f5; }
+    .recent-item:last-child { border-bottom: none; }
+    .recent-item .avatar { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: #fff; flex-shrink: 0; }
+    .recent-item .avatar.p { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .recent-item .avatar.a { background: linear-gradient(135deg, #22c55e, #16a34a); }
+    .recent-item .avatar.d { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .recent-item .details { flex: 1; min-width: 0; }
+    .recent-item .details h4 { font-size: 0.88rem; font-weight: 600; color: #1a1a1a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .recent-item .details p { font-size: 0.75rem; color: #999; margin-top: 2px; }
+
+    .quick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .quick-btn { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 18px 12px; background: #f9fafb; border-radius: 12px; text-decoration: none; color: #333; transition: all 0.2s; border: 1px solid transparent; }
+    .quick-btn:hover { background: #fff; border-color: #c2a06b; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .quick-btn .qi { font-size: 1.5rem; }
+    .quick-btn .ql { font-size: 0.78rem; font-weight: 600; color: #555; }
+
+    .event-row { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid #f5f5f5; }
+    .event-row:last-child { border-bottom: none; }
+    .event-row .ed { text-align: center; background: #f9fafb; border-radius: 10px; padding: 8px 12px; min-width: 56px; }
+    .event-row .ed .d { display: block; font-size: 1.2rem; font-weight: 700; color: #1a1a1a; line-height: 1; }
+    .event-row .ed .m { font-size: 0.65rem; font-weight: 600; color: #c2a06b; text-transform: uppercase; letter-spacing: 0.08em; }
+    .event-row .ei h4 { font-size: 0.88rem; font-weight: 600; color: #1a1a1a; }
+    .event-row .ei p { font-size: 0.75rem; color: #999; margin-top: 2px; }
+    .event-row .countdown { font-size: 0.72rem; font-weight: 600; color: #16a34a; white-space: nowrap; }
+
+    .no-data { text-align: center; padding: 30px; color: #ccc; font-size: 0.85rem; }
+
+    @media (max-width: 1024px) {
+      .dash-stats { grid-template-columns: repeat(2, 1fr); }
+      .dash-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .mobile-brand { display: block; border-radius: 0 0 16px 16px; margin-bottom: 16px; }
+      .welcome-banner { display: none; }
+      .dash-stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .dash-stat { padding: 14px; gap: 10px; }
+      .dash-stat .icon { width: 40px; height: 40px; font-size: 1.1rem; }
+      .dash-stat .info .num { font-size: 1.3rem; }
+      .quick-grid { grid-template-columns: repeat(4, 1fr); }
+      .quick-btn { padding: 12px 6px; }
+      .quick-btn .qi { font-size: 1.2rem; }
+      .quick-btn .ql { font-size: 0.65rem; }
+      .dash-card { padding: 16px; }
+      .recent-item { gap: 10px; padding: 10px 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <%- include('sidebar') %>
+    <main class="admin-main">
+
+      <!-- Mobile Brand (phone only) -->
+      <div class="mobile-brand">
+        <h2>Isabella M.</h2>
+        <span>Studio Admin</span>
+      </div>
+
+      <!-- Welcome Banner (laptop only) -->
+      <div class="welcome-banner">
+        <div class="welcome-text">
+          <h1>Welcome back, <span><%= session.admin.username %></span></h1>
+          <p>Here's what's happening with your studio today.</p>
+        </div>
+        <div class="welcome-right">
+          <div class="clock" id="liveClock"></div>
+          <div class="date"><%= new Date().toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) %></div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="dash-stats">
+        <a href="/admin/inquiries?status=pending" class="dash-stat <%= pendingCount > 0 ? 'pulse' : '' %>">
+          <div class="icon gold">&#128233;</div>
+          <div class="info">
+            <div class="num"><%= pendingCount %></div>
+            <div class="lbl">Pending</div>
+          </div>
+        </a>
+        <a href="/admin/inquiries?status=accepted" class="dash-stat">
+          <div class="icon green">&#10003;</div>
+          <div class="info">
+            <div class="num"><%= acceptedCount %></div>
+            <div class="lbl">Accepted</div>
+          </div>
+        </a>
+        <a href="/admin/inquiries?status=denied" class="dash-stat">
+          <div class="icon red">&#10007;</div>
+          <div class="info">
+            <div class="num"><%= deniedCount %></div>
+            <div class="lbl">Denied</div>
+          </div>
+        </a>
+        <a href="/admin/galleries" class="dash-stat">
+          <div class="icon blue">&#128247;</div>
+          <div class="info">
+            <div class="num"><%= galleryCount %></div>
+            <div class="lbl">Galleries</div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="dash-card" style="margin-bottom:20px">
+        <h2>Quick Actions</h2>
+        <div class="quick-grid">
+          <a href="/admin/inquiries" class="quick-btn"><span class="qi">&#128233;</span><span class="ql">Inquiries</span></a>
+          <a href="/admin/galleries" class="quick-btn"><span class="qi">&#128247;</span><span class="ql">Galleries</span></a>
+          <a href="/admin/site-editor" class="quick-btn"><span class="qi">&#9998;</span><span class="ql">Edit Site</span></a>
+          <a href="/admin/schedule" class="quick-btn"><span class="qi">&#128197;</span><span class="ql">Schedule</span></a>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <!-- Recent Inquiries -->
+        <div class="dash-card">
+          <h2>Recent Inquiries <a href="/admin/inquiries">View All</a></h2>
+          <% if (recentContacts.length === 0) { %>
+            <div class="no-data">No inquiries yet</div>
+          <% } else { %>
+            <% recentContacts.forEach(c => { %>
+              <div class="recent-item">
+                <div class="avatar <%= c.status.charAt(0) %>"><%= c.name.charAt(0).toUpperCase() %></div>
+                <div class="details">
+                  <h4><%= c.name %></h4>
+                  <p><%= c.event_type || 'Event' %> &middot; <%= new Date(c.created_at).toLocaleDateString('en', { month: 'short', day: 'numeric' }) %></p>
+                </div>
+                <span class="badge badge-<%= c.status %>"><%= c.status %></span>
+              </div>
+            <% }) %>
+          <% } %>
+        </div>
+
+        <!-- Upcoming Events -->
+        <div class="dash-card">
+          <h2>Upcoming Events <a href="/admin/schedule">Schedule</a></h2>
+          <% if (upcomingEvents.length === 0) { %>
+            <div class="no-data">No upcoming events</div>
+          <% } else { %>
+            <% upcomingEvents.forEach(e => {
+              const d = new Date(e.event_date + 'T00:00:00');
+              const now = new Date();
+              const diff = Math.ceil((d - now) / (1000*60*60*24));
+            %>
+              <div class="event-row">
+                <div class="ed">
+                  <span class="d"><%= d.getDate() %></span>
+                  <span class="m"><%= d.toLocaleDateString('en', { month: 'short' }) %></span>
+                </div>
+                <div class="ei">
+                  <h4><%= e.name %></h4>
+                  <p><%= e.event_type || 'Event' %> &middot; <%= e.location || 'TBD' %></p>
+                </div>
+                <span class="countdown"><%= diff === 0 ? 'Today' : diff + 'd' %></span>
+              </div>
+            <% }) %>
+          <% } %>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    (function() {
+      function updateClock() {
+        var el = document.getElementById('liveClock');
+        if (!el) return;
+        var now = new Date();
+        var h = now.getHours();
+        var m = now.getMinutes();
+        var s = now.getSeconds();
+        var ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12 || 12;
+        el.textContent = (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s + ' ' + ampm;
+      }
+      updateClock();
+      setInterval(updateClock, 1000);
+    })();
+  </script>
+</body>
+</html>

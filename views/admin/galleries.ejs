@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Client Galleries - Studio Admin</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    .split-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 20px; }
+    .split-left, .split-right { min-width: 0; }
+
+    .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+    .gallery-card { background: #1a1a1a; border-radius: 12px; overflow: hidden; transition: transform 0.2s; }
+    .gallery-card:hover { transform: translateY(-2px); }
+    .gallery-card a { text-decoration: none; color: inherit; }
+    .gallery-thumb { width: 100%; aspect-ratio: 4/3; object-fit: cover; background: #222; display: block; }
+    .gallery-thumb.empty { display: flex; align-items: center; justify-content: center; color: #555; font-size: 13px; }
+    .gallery-info { padding: 12px; }
+    .gallery-info h3 { margin: 0 0 4px; font-size: 14px; color: #fff; }
+    .gallery-info p { margin: 0; font-size: 12px; color: #888; }
+    .gallery-meta { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+    .gallery-meta span { font-size: 11px; color: #666; }
+
+    .create-form { background: #1a1a1a; border-radius: 12px; padding: 24px; }
+    .create-form h2 { margin: 0 0 16px; font-size: 18px; color: #fff; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .form-row.full { grid-template-columns: 1fr; }
+    .form-row label { display: block; font-size: 12px; color: #888; margin-bottom: 4px; font-weight: 500; }
+    .form-row input, .form-row select { width: 100%; padding: 10px 12px; background: #222; border: 1px solid #333; border-radius: 6px; color: #fff; font-size: 14px; }
+    .form-row input:focus, .form-row select:focus { border-color: #c2a06b; outline: none; }
+
+    .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+    .badge-public { background: #1a4d2e; color: #4ade80; }
+    .badge-private { background: #4d1a1a; color: #f87171; }
+    .badge-r2 { background: #4d2a0a; color: #fb923c; }
+    .badge-cloudinary { background: #3a1a4d; color: #c084fc; }
+    .badge-telegram { background: #1a3a4d; color: #60a5fa; }
+
+    .quick-fill { background: #0f1a2a; border: 1px solid #1e3a5f; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; }
+    .quick-fill label { color: #60a5fa; font-weight: 600; font-size: 12px; }
+
+    .storage-toggle { display: flex; align-items: center; gap: 10px; margin: 12px 0; }
+    .toggle-label { font-size: 12px; color: #888; }
+    .toggle-container { position: relative; width: 280px; height: 34px; background: #222; border-radius: 17px; border: 1px solid #333; overflow: hidden; }
+    .toggle-option { position: absolute; top: 0; height: 100%; width: 33.33%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s; z-index: 1; }
+    .toggle-option.left { left: 0; color: #888; }
+    .toggle-option.center { left: 33.33%; color: #888; }
+    .toggle-option.right { right: 0; color: #888; }
+    .toggle-option.active { color: #fff; }
+    .toggle-option.active.left { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .toggle-option.active.center { background: linear-gradient(135deg, #f97316, #ea580c); }
+    .toggle-option.active.right { background: linear-gradient(135deg, #a855f7, #7c3aed); }
+    .toggle-option .icon { margin-right: 3px; font-size: 12px; }
+    .storage-info { font-size: 10px; color: #555; margin-top: 2px; }
+
+    .add-phone-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: 16px; transition: transform 0.15s; }
+    .add-phone-btn:hover { transform: scale(1.02); }
+    .phone-form { display: none; background: #0f1a2a; border: 1px solid #1e3a5f; border-radius: 8px; padding: 14px; margin-bottom: 16px; }
+    .phone-form.active { display: block; }
+    .phone-form .form-row { margin-bottom: 8px; }
+    .phone-form button { margin-top: 4px; }
+
+    .section-title { font-size: 14px; color: #888; margin-bottom: 12px; font-weight: 600; }
+
+    @media (max-width: 900px) {
+      .split-layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <%- include('sidebar') %>
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1>Client Galleries</h1>
+        <p class="admin-sub">Create and manage galleries for your clients.</p>
+      </div>
+
+      <div class="split-layout">
+        <!-- LEFT: Created Galleries -->
+        <div class="split-left">
+          <p class="section-title">Created Galleries (<%= galleries.length %>)</p>
+
+          <!-- Add Phone Button -->
+          <button class="add-phone-btn" onclick="document.getElementById('phoneForm').classList.toggle('active')">
+            &#9742; Add Client Phone
+          </button>
+
+          <!-- Phone Form (hidden by default) -->
+          <div class="phone-form" id="phoneForm">
+            <div class="form-row">
+              <div><label>Client Name</label><input type="text" id="phName" placeholder="Client name"></div>
+              <div><label>Phone Number</label><input type="tel" id="phPhone" placeholder="+91 98765 43210"></div>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="savePhone()">Save Phone</button>
+          </div>
+
+          <% if (galleries.length === 0) { %>
+          <div class="empty-state"><p>No galleries yet — create one on the right.</p></div>
+          <% } else { %>
+          <div class="gallery-grid">
+            <% galleries.forEach(g => { %>
+            <div class="gallery-card">
+              <a href="/admin/galleries/<%= g.slug %>">
+                <% if (g.cover_url) { %>
+                <img class="gallery-thumb" src="<%= g.cover_url %>" alt="<%= g.client_name %>">
+                <% } else { %>
+                <div class="gallery-thumb empty">No photos</div>
+                <% } %>
+                <div class="gallery-info">
+                  <h3><%= g.client_name %></h3>
+                  <p><%= g.event_type || 'Event' %><%= g.location ? ' · ' + g.location : '' %></p>
+                  <div class="gallery-meta">
+                    <span><%= g.image_count %> photos</span>
+                    <% if (g.event_date) { %><span><%= new Date(g.event_date + 'T00:00:00').toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' }) %></span><% } %>
+                    <span class="badge <%= g.is_public ? 'badge-public' : 'badge-private' %>"><%= g.is_public ? 'Public' : 'Private' %></span>
+                    <span class="badge <%= { telegram: 'badge-telegram', r2: 'badge-r2', cloudinary: 'badge-cloudinary' }[g.storage_backend || 'telegram'] %>"><%= { telegram: 't_storage', r2: 'R2', cloudinary: 'Compress' }[g.storage_backend || 'telegram'] %></span>
+                  </div>
+                </div>
+              </a>
+            </div>
+            <% }) %>
+          </div>
+          <% } %>
+        </div>
+
+        <!-- RIGHT: Create Form -->
+        <div class="split-right">
+          <div class="create-form">
+            <h2>Create New Gallery</h2>
+            <form method="POST" action="/admin/galleries/create">
+              <!-- Quick fill from inquiry -->
+              <div class="form-row full quick-fill">
+                <div>
+                  <label>⚡ Quick Fill from Inquiry</label>
+                  <select id="inquirySelect" onchange="fillFromInquiry(this)" style="width:100%;padding:10px 12px;background:#222;border:1px solid #333;border-radius:6px;color:#fff;font-size:14px">
+                    <option value="">— Select accepted inquiry —</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div><label>Client Name *</label><input type="text" name="client_name" required placeholder="e.g. Elena & Marco" value="<%= prefill.client_name %>"></div>
+                <div><label>Client Email</label><input type="email" name="client_email" placeholder="client@email.com" value="<%= prefill.client_email %>"></div>
+              </div>
+              <div class="form-row">
+                <div><label>Phone</label><input type="tel" name="client_phone" placeholder="+91 98765 43210" value="<%= prefill.client_phone %>"></div>
+                <div><label>Event Date</label><input type="date" name="event_date" value="<%= prefill.event_date %>"></div>
+              </div>
+              <div class="form-row">
+                <div><label>Event Type</label>
+                  <select name="event_type">
+                    <option value="">Select…</option>
+                    <% ['Wedding','Elopement','Engagement','Pre-Wedding','Reception','Other'].forEach(t => { %>
+                    <option <%= prefill.event_type === t ? 'selected' : '' %>><%= t %></option>
+                    <% }) %>
+                  </select>
+                </div>
+                <div><label>Location</label><input type="text" name="location" placeholder="City, Venue" value="<%= prefill.location %>"></div>
+              </div>
+              <div class="form-row full">
+                <div><label>Description</label><input type="text" name="description" placeholder="Short note about the event"></div>
+              </div>
+
+              <!-- Storage Backend Toggle -->
+              <div class="form-row full">
+                <div>
+                  <label>Storage Backend</label>
+                  <div class="storage-toggle">
+                    <div class="toggle-container">
+                      <input type="hidden" name="storage_backend" id="storageBackend" value="<%= currentBackend %>">
+                      <div class="toggle-option left <%= currentBackend === 'telegram' ? 'active' : '' %>" data-value="telegram" onclick="setStorage('telegram')">
+                        <span class="icon">&#9993;</span> t_storage
+                      </div>
+                      <div class="toggle-option center <%= currentBackend === 'r2' ? 'active' : '' %>" data-value="r2" onclick="setStorage('r2')">
+                        <span class="icon">&#9729;</span> R2
+                      </div>
+                      <div class="toggle-option right <%= currentBackend === 'cloudinary' ? 'active' : '' %>" data-value="cloudinary" onclick="setStorage('cloudinary')">
+                        <span class="icon">&#9889;</span> Compress
+                      </div>
+                    </div>
+                    <span class="toggle-label" id="storageLabel"><%= { telegram: 't_storage — Free, 50MB per file', r2: 'Cloudflare R2 — Unlimited', cloudinary: 'Cloudinary — Auto compress' }[currentBackend] %></span>
+                  </div>
+                  <p class="storage-info">Each gallery stores images in its own folder.</p>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary" style="margin-top:8px">Create Gallery</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function setStorage(value) {
+      document.getElementById('storageBackend').value = value;
+      document.querySelectorAll('.toggle-option').forEach(el => {
+        el.classList.toggle('active', el.dataset.value === value);
+      });
+      var labels = {
+        telegram: 't_storage — Free, 50MB per file',
+        r2: 'Cloudflare R2 — Unlimited',
+        cloudinary: 'Cloudinary — Auto compress'
+      };
+      document.getElementById('storageLabel').textContent = labels[value];
+    }
+
+    /* Load inquiries for quick fill dropdown */
+    (function() {
+      var select = document.getElementById('inquirySelect');
+      fetch('/api/inquiries/list')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (!data.inquiries) return;
+          data.inquiries.forEach(function(inq) {
+            var opt = document.createElement('option');
+            opt.value = JSON.stringify(inq);
+            var label = inq.name + ' — ' + (inq.event_type || 'Event');
+            if (inq.event_date) label += ' (' + inq.event_date + ')';
+            opt.textContent = label;
+            select.appendChild(opt);
+          });
+        })
+        .catch(function() {});
+    })();
+
+    function fillFromInquiry(sel) {
+      if (!sel.value) return;
+      var inq = JSON.parse(sel.value);
+      var form = sel.closest('form');
+      form.querySelector('[name="client_name"]').value = inq.name || '';
+      form.querySelector('[name="client_email"]').value = inq.email || '';
+      form.querySelector('[name="client_phone"]').value = inq.phone || '';
+      form.querySelector('[name="event_date"]').value = inq.event_date || '';
+      form.querySelector('[name="location"]').value = inq.location || '';
+      var typeSelect = form.querySelector('[name="event_type"]');
+      if (typeSelect && inq.event_type) {
+        for (var i = 0; i < typeSelect.options.length; i++) {
+          if (typeSelect.options[i].value === inq.event_type) {
+            typeSelect.selectedIndex = i;
+            break;
+          }
+        }
+      }
+    }
+
+    function savePhone() {
+      var name = document.getElementById('phName').value.trim();
+      var phone = document.getElementById('phPhone').value.trim();
+      if (!name || !phone) return alert('Name and phone required');
+      fetch('/admin/galleries/save-phone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name, phone: phone })
+      }).then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (d.success) { alert('Phone saved!'); document.getElementById('phoneForm').classList.remove('active'); }
+          else alert(d.error || 'Failed');
+        });
+    }
+  </script>
+</body>
+</html>

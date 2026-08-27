@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title><%= gallery.client_name %> - Gallery</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    .gallery-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+    .gallery-header h1 { margin: 0; font-size: 22px; color: #c9a236; }
+    .gallery-header .actions { display: flex; gap: 8px; }
+
+    .client-bar { display: flex; align-items: center; gap: 20px; background: #1a1a1a; border-radius: 10px; padding: 14px 20px; margin-bottom: 16px; flex-wrap: wrap; }
+    .client-bar .info { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #aaa; }
+    .client-bar .info b { color: #fff; font-weight: 600; }
+    .client-bar .sep { width: 1px; height: 20px; background: #333; }
+
+    .share-bar { display: flex; align-items: center; gap: 8px; background: #1a1a1a; border-radius: 10px; padding: 10px 16px; margin-bottom: 16px; }
+    .share-bar .link-text { flex: 1; color: #4ade80; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .share-bar button { background: #2a2a2a; border: 1px solid #3a3a3a; color: #ccc; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .share-bar button:hover { background: #3a3a3a; color: #fff; }
+
+    .storage-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; background: #1a1a1a; border-radius: 10px; padding: 10px 16px; }
+    .storage-row label { font-size: 12px; color: #888; font-weight: 600; white-space: nowrap; }
+    .toggle-container { position: relative; width: 260px; height: 32px; background: #222; border-radius: 16px; border: 1px solid #333; overflow: hidden; flex-shrink: 0; }
+    .toggle-option { position: absolute; top: 0; height: 100%; width: 33.33%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s; z-index: 1; }
+    .toggle-option.left { left: 0; color: #888; }
+    .toggle-option.center { left: 33.33%; color: #888; }
+    .toggle-option.right { right: 0; color: #888; }
+    .toggle-option.active { color: #fff; }
+    .toggle-option.active.left { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .toggle-option.active.center { background: linear-gradient(135deg, #f97316, #ea580c); }
+    .toggle-option.active.right { background: linear-gradient(135deg, #a855f7, #7c3aed); }
+    .toggle-option .icon { margin-right: 3px; font-size: 11px; }
+    .edit-toggle-btn { background: #2a2a2a; border: 1px solid #3a3a3a; color: #ccc; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; margin-left: auto; }
+    .edit-toggle-btn:hover { background: #3a3a3a; color: #fff; }
+
+    .edit-form { display: none; background: #1a1a1a; border-radius: 10px; padding: 20px 24px; margin-bottom: 16px; }
+    .edit-form.open { display: block; }
+    .edit-form h3 { margin: 0 0 14px; font-size: 15px; color: #fff; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .form-row.full { grid-template-columns: 1fr; }
+    .form-row label { display: block; font-size: 12px; color: #888; margin-bottom: 4px; font-weight: 500; }
+    .form-row input, .form-row select { width: 100%; padding: 9px 12px; background: #222; border: 1px solid #333; border-radius: 6px; color: #fff; font-size: 14px; }
+    .form-row input:focus, .form-row select:focus { border-color: #c2a06b; outline: none; }
+    .toggle-check { display: flex; align-items: center; gap: 8px; }
+    .toggle-check input[type="checkbox"] { width: 16px; height: 16px; accent-color: #c2a06b; }
+
+    .upload-zone { border: 2px dashed #333; border-radius: 12px; padding: 36px; text-align: center; margin-bottom: 20px; cursor: pointer; transition: border-color 0.2s; }
+    .upload-zone:hover, .upload-zone.dragover { border-color: #c2a06b; }
+    .upload-zone p { margin: 0; color: #888; font-size: 13px; }
+    .upload-zone .big { font-size: 28px; margin-bottom: 6px; }
+    .upload-progress { display: none; margin-top: 10px; }
+    .upload-progress.active { display: block; }
+    .progress-bar { height: 4px; background: #222; border-radius: 2px; overflow: hidden; }
+    .progress-fill { height: 100%; background: #c2a06b; transition: width 0.3s; }
+
+    .image-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+    .image-card { position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 1; background: #222; cursor: pointer; }
+    .image-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s; }
+    .image-card:hover img { transform: scale(1.05); }
+    .image-card .select { position: absolute; top: 6px; left: 6px; width: 22px; height: 22px; border-radius: 50%; border: 2px solid #fff; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
+    .image-card:hover .select { opacity: 1; }
+    .image-card.selected .select { opacity: 1; background: #c2a06b; border-color: #c2a06b; }
+    .image-card.selected .select::after { content: '\2713'; color: #fff; font-size: 12px; }
+    .image-card .del-btn { position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; border-radius: 50%; border: none; background: rgba(220,38,38,0.8); color: #fff; font-size: 14px; cursor: pointer; opacity: 0; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; }
+    .image-card:hover .del-btn { opacity: 1; }
+
+    .bulk-bar { display: none; position: sticky; bottom: 0; background: #1a1a1a; border-top: 1px solid #333; padding: 10px 16px; border-radius: 10px; margin-top: 10px; align-items: center; justify-content: space-between; }
+    .bulk-bar.active { display: flex; }
+    .bulk-bar span { color: #ccc; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <%- include('sidebar') %>
+    <main class="admin-main">
+      <div class="gallery-header">
+        <div>
+          <a href="/admin/galleries" style="color:#888;font-size:12px;text-decoration:none">&larr; Back</a>
+          <h1><%= gallery.client_name %></h1>
+        </div>
+        <div class="actions">
+          <a href="/gallery/<%= gallery.slug %>" target="_blank" class="btn btn-ghost btn-sm">View Public</a>
+          <form method="POST" action="/admin/galleries/<%= gallery.slug %>/delete" onsubmit="return confirm('Delete this gallery and all images?\n\nR2 & Cloudinary: Files will be deleted.\nTelegram: Files will remain (Telegram limitation).');" style="display:inline">
+            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Client Info Bar -->
+      <div class="client-bar">
+        <div class="info"><b><%= gallery.client_name %></b></div>
+        <% if (gallery.client_email) { %><div class="sep"></div><div class="info">&#9993; <%= gallery.client_email %></div><% } %>
+        <% if (gallery.client_phone) { %><div class="sep"></div><div class="info">&#9742; <%= gallery.client_phone %></div><% } %>
+        <% if (gallery.location) { %><div class="sep"></div><div class="info">&#9673; <%= gallery.location %></div><% } %>
+        <% if (gallery.event_type) { %><div class="sep"></div><div class="info"><%= gallery.event_type %></div><% } %>
+        <% if (gallery.event_date) { %><div class="sep"></div><div class="info"><%= new Date(gallery.event_date + 'T00:00:00').toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' }) %></div><% } %>
+      </div>
+
+      <!-- Share Link (compact) -->
+      <div class="share-bar">
+        <span style="color:#666;font-size:12px">Share:</span>
+        <span class="link-text" id="shareLink">localhost:3000/gallery/<%= gallery.slug %></span>
+        <button onclick="navigator.clipboard.writeText(document.getElementById('shareLink').textContent);this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)">Copy</button>
+      </div>
+
+      <!-- Storage Toggle + Edit Button -->
+      <div class="storage-row">
+        <label>Storage:</label>
+        <div class="toggle-container">
+          <input type="hidden" name="storage_backend" id="storageBackend" value="<%= gallery.storage_backend || 'telegram' %>">
+          <div class="toggle-option left <%= (gallery.storage_backend || 'telegram') === 'telegram' ? 'active' : '' %>" data-value="telegram" onclick="setStorage('telegram')">
+            <span class="icon">&#9993;</span> t_storage
+          </div>
+          <div class="toggle-option center <%= (gallery.storage_backend || 'telegram') === 'r2' ? 'active' : '' %>" data-value="r2" onclick="setStorage('r2')">
+            <span class="icon">&#9729;</span> R2
+          </div>
+          <div class="toggle-option right <%= (gallery.storage_backend || 'telegram') === 'cloudinary' ? 'active' : '' %>" data-value="cloudinary" onclick="setStorage('cloudinary')">
+            <span class="icon">&#9889;</span> Compress
+          </div>
+        </div>
+        <button class="edit-toggle-btn" onclick="toggleEditForm()">&#9998; Edit Details</button>
+      </div>
+
+      <!-- Hidden Edit Form -->
+      <div class="edit-form" id="editForm">
+        <h3>Gallery Details</h3>
+        <form method="POST" action="/admin/galleries/<%= gallery.slug %>/update">
+          <div class="form-row">
+            <div><label>Client Name</label><input type="text" name="client_name" value="<%= gallery.client_name %>"></div>
+            <div><label>Client Email</label><input type="email" name="client_email" value="<%= gallery.client_email || '' %>"></div>
+          </div>
+          <div class="form-row">
+            <div><label>Phone</label><input type="tel" name="client_phone" value="<%= gallery.client_phone || '' %>"></div>
+            <div><label>Event Date</label><input type="date" name="event_date" value="<%= gallery.event_date || '' %>"></div>
+          </div>
+          <div class="form-row">
+            <div><label>Event Type</label>
+              <select name="event_type">
+                <option value="">Select…</option>
+                <% ['Wedding','Elopement','Engagement','Pre-Wedding','Reception','Other'].forEach(t => { %>
+                <option <%= gallery.event_type === t ? 'selected' : '' %>><%= t %></option>
+                <% }) %>
+              </select>
+            </div>
+            <div><label>Location</label><input type="text" name="location" value="<%= gallery.location || '' %>"></div>
+          </div>
+          <div class="form-row full">
+            <div><label>Description</label><input type="text" name="description" value="<%= gallery.description || '' %>" placeholder="Short note"></div>
+          </div>
+          <div class="form-row full">
+            <div class="toggle-check">
+              <input type="checkbox" name="is_public" id="isPublic" <%= gallery.is_public ? 'checked' : '' %>>
+              <label for="isPublic" style="margin:0;color:#ccc;font-size:12px">Public — client can view with link</label>
+            </div>
+          </div>
+          <div class="form-row full">
+            <input type="hidden" name="storage_backend" value="<%= gallery.storage_backend || 'telegram' %>">
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm">Save Changes</button>
+        </form>
+      </div>
+
+      <!-- Upload zone -->
+      <div class="upload-zone" id="uploadZone">
+        <div class="big">&#128247;</div>
+        <p>Drag & drop images here or <strong>click to browse</strong></p>
+        <p style="font-size:11px;color:#555;margin-top:4px">JPG, PNG, WebP, GIF — up to 120MB each</p>
+        <input type="file" id="fileInput" multiple accept="image/*" hidden>
+        <div class="upload-progress" id="uploadProgress">
+          <p id="uploadStatus" style="font-size:12px;color:#c2a06b;margin:8px 0 4px">Uploading...</p>
+          <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        </div>
+      </div>
+
+      <!-- Image grid -->
+      <% if (images.length === 0) { %>
+      <div class="empty-state"><p>No images yet — upload some above.</p></div>
+      <% } else { %>
+      <div class="image-grid" id="imageGrid">
+        <% images.forEach(img => { %>
+        <div class="image-card" data-id="<%= img.id %>">
+          <img src="<%= img.url %>" alt="<%= img.original_name || '' %>" loading="lazy">
+          <div class="select"></div>
+          <button class="del-btn" title="Delete">&times;</button>
+        </div>
+        <% }) %>
+      </div>
+
+      <div class="bulk-bar" id="bulkBar">
+        <span id="bulkCount">0 selected</span>
+        <div>
+          <button class="btn btn-danger btn-sm" id="bulkDelete">Delete Selected</button>
+          <button class="btn btn-ghost btn-sm" id="bulkDeselect">Deselect All</button>
+        </div>
+      </div>
+      <% } %>
+    </main>
+  </div>
+
+  <script>
+    function setStorage(value) {
+      document.getElementById('storageBackend').value = value;
+      document.querySelectorAll('.toggle-option').forEach(el => {
+        el.classList.toggle('active', el.dataset.value === value);
+      });
+      fetch('/admin/galleries/<%= gallery.slug %>/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'client_name=<%= encodeURIComponent(gallery.client_name) %>&storage_backend=' + value
+      });
+    }
+
+    function toggleEditForm() {
+      document.getElementById('editForm').classList.toggle('open');
+    }
+
+    (function () {
+      var slug = '<%= gallery.slug %>';
+      var zone = document.getElementById('uploadZone');
+      var fileInput = document.getElementById('fileInput');
+      var progress = document.getElementById('uploadProgress');
+      var status = document.getElementById('uploadStatus');
+      var fill = document.getElementById('progressFill');
+
+      zone.addEventListener('click', function (e) { if (e.target === zone || e.target.parentNode === zone) fileInput.click(); });
+      zone.addEventListener('dragover', function (e) { e.preventDefault(); zone.classList.add('dragover'); });
+      zone.addEventListener('dragleave', function () { zone.classList.remove('dragover'); });
+      zone.addEventListener('drop', function (e) { e.preventDefault(); zone.classList.remove('dragover'); uploadFiles(e.dataTransfer.files); });
+      fileInput.addEventListener('change', function () { uploadFiles(fileInput.files); fileInput.value = ''; });
+
+      function uploadFiles(files) {
+        if (!files.length) return;
+        var fd = new FormData();
+        for (var i = 0; i < files.length; i++) fd.append('images', files[i]);
+        progress.classList.add('active');
+        status.textContent = 'Uploading ' + files.length + ' file(s)...';
+        fill.style.width = '30%';
+        fetch('/admin/galleries/' + slug + '/upload', { method: 'POST', body: fd })
+          .then(function (r) { fill.style.width = '100%'; return r.json(); })
+          .then(function (d) {
+            if (!d.success) throw new Error(d.error || 'Upload failed');
+            status.textContent = d.uploaded + '/' + d.total + ' uploaded!';
+            setTimeout(function () { location.reload(); }, 800);
+          })
+          .catch(function (e) { status.textContent = 'Error: ' + e.message; fill.style.width = '0%'; });
+      }
+
+      var selected = new Set();
+      var grid = document.getElementById('imageGrid');
+      var bulkBar = document.getElementById('bulkBar');
+      var bulkCount = document.getElementById('bulkCount');
+
+      if (grid) {
+        grid.addEventListener('click', function (e) {
+          var card = e.target.closest('.image-card');
+          if (!card) return;
+          if (e.target.classList.contains('del-btn')) {
+            e.stopPropagation();
+            if (!confirm('Delete this image?')) return;
+            fetch('/admin/galleries/' + slug + '/delete-image/' + card.dataset.id, { method: 'POST' })
+              .then(function (r) { return r.json(); })
+              .then(function (d) { if (d.success) card.remove(); });
+            return;
+          }
+          card.classList.toggle('selected');
+          var id = parseInt(card.dataset.id);
+          if (selected.has(id)) selected.delete(id); else selected.add(id);
+          updateBulk();
+        });
+      }
+
+      function updateBulk() {
+        bulkCount.textContent = selected.size + ' selected';
+        bulkBar.classList.toggle('active', selected.size > 0);
+      }
+
+      document.getElementById('bulkDeselect').onclick = function () {
+        selected.clear();
+        grid.querySelectorAll('.selected').forEach(function (c) { c.classList.remove('selected'); });
+        updateBulk();
+      };
+
+      document.getElementById('bulkDelete').onclick = function () {
+        if (!confirm('Delete ' + selected.size + ' images?')) return;
+        fetch('/admin/galleries/' + slug + '/delete-images', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: Array.from(selected) })
+        }).then(function (r) { return r.json(); })
+          .then(function (d) { if (d.success) location.reload(); });
+      };
+    })();
+  </script>
+</body>
+</html>

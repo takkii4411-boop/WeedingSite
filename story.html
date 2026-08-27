@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wedding Story — Isabella Marchetti</title>
+  <meta name="description" content="A wedding story captured by Isabella Marchetti, fine-art wedding photographer." />
+  <meta name="theme-color" content="#0f0e0c" />
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='8' fill='%230f0e0c'/%3E%3Ctext x='32' y='42' font-family='Georgia,serif' font-size='30' fill='%23c2a06b' text-anchor='middle'%3EIM%3C/text%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
+
+  <link rel="stylesheet" href="css/styles.css" />
+  <script>document.documentElement.classList.add("js");</script>
+</head>
+
+<body class="story-page">
+  <a class="skip-link" href="#storyMain">Skip to content</a>
+
+  <header class="nav nav--solid" id="nav">
+    <div class="nav__inner">
+      <a class="nav__brand" href="index.html">
+        <span class="nav__monogram">IM</span>
+        <span class="nav__name" data-cms="brand_name">Isabella&nbsp;Marchetti</span>
+      </a>
+      <nav class="nav__links" aria-label="Primary">
+        <a href="index.html#home">Home</a>
+        <a href="index.html#about">About</a>
+        <a href="index.html#stories">Stories</a>
+        <a href="index.html#gallery">Gallery</a>
+        <a href="index.html#services">Services</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+      <a class="btn btn--ghost btn--small nav__cta" href="index.html#contact">Inquire</a>
+    </div>
+  </header>
+
+  <main id="storyMain"><!-- rendered by story.js --></main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <p class="footer__mark">IM</p>
+      <nav class="footer__social" aria-label="Social media">
+        <a href="#">Instagram</a><a href="#">Vimeo</a><a href="#">Pinterest</a>
+      </nav>
+      <p class="footer__note">© <span id="year">2026</span> <span data-cms="footer_note">Isabella Marchetti. All photographs remain the property of their couples.</span></p>
+    </div>
+  </footer>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Photograph viewer" hidden>
+    <button class="lightbox__close" id="lbClose" aria-label="Close viewer">&#10005;</button>
+    <button class="lightbox__arrow lightbox__arrow--prev" id="lbPrev" aria-label="Previous photograph">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+    </button>
+    <figure class="lightbox__fig">
+      <img id="lbImg" src="" alt="" decoding="async" />
+      <figcaption><span id="lbAlt"></span><span id="lbCount"></span></figcaption>
+    </figure>
+    <button class="lightbox__arrow lightbox__arrow--next" id="lbNext" aria-label="Next photograph">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+
+  <script src="js/content.js?v=6" defer></script>
+  <script src="js/lightbox.js?v=6" defer></script>
+  <script src="js/story.js?v=6" defer></script>
+  <script src="js/cms.js?v=6" defer></script>
+</body>
+</html>
