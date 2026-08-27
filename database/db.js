@@ -1,12 +1,16 @@
-/* ==========================================================================
-   DATABASE — Turso (libSQL) for production, SQLite file for local dev.
-   All queries are async. Routes call db.execute() / db.batch() etc.
-   ========================================================================== */
 const { createClient } = require('@libsql/client');
 const bcrypt = require('bcryptjs');
+const fs = require('fs');
+const path = require('path');
+
+const dataDir = path.join(__dirname, '..', 'data');
+if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+
+const uploadsDir = path.join(__dirname, '..', 'uploads');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
 const db = createClient({
-  url: process.env.TURSO_DATABASE_URL || 'file:local.db',
+  url: process.env.TURSO_DATABASE_URL || 'file:' + path.join(dataDir, 'local.db'),
   authToken: process.env.TURSO_AUTH_TOKEN || undefined,
 });
 
@@ -75,14 +79,12 @@ async function init() {
     )`,
   ]);
 
-  /* Migrations (safe to run every time) */
   try { await db.execute('SELECT storage_backend FROM site_media LIMIT 1'); }
   catch { await db.execute("ALTER TABLE site_media ADD COLUMN storage_backend TEXT DEFAULT 'r2'"); }
 
   try { await db.execute('SELECT client_phone FROM client_galleries LIMIT 1'); }
   catch { await db.execute('ALTER TABLE client_galleries ADD COLUMN client_phone TEXT'); }
 
-  /* Default admin */
   const { rows } = await db.execute('SELECT COUNT(*) as count FROM admins');
   if (rows[0].count === 0) {
     const hash = bcrypt.hashSync('admin123', 10);

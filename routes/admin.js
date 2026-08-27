@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const db = require('../database/db');
+const { db } = require('../database/db');
 const { TEXT_SLOTS, MEDIA_SLOTS } = require('../utils/siteSlots');
 const router = express.Router();
 
@@ -29,67 +29,77 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-/* ---------------- Dashboard ---------------- */
-router.get('/dashboard', requireAdmin, (req, res) => {
-  const contactCount = db.prepare('SELECT COUNT(*) as count FROM contacts').get().count;
-  const pendingCount = db.prepare("SELECT COUNT(*) as count FROM contacts WHERE status='pending'").get().count;
-  const acceptedCount = db.prepare("SELECT COUNT(*) as count FROM contacts WHERE status='accepted'").get().count;
-  const deniedCount = db.prepare("SELECT COUNT(*) as count FROM contacts WHERE status='denied'").get().count;
-  const galleryCount = db.prepare('SELECT COUNT(*) as count FROM client_galleries').get().count;
-  const recentContacts = db.prepare('SELECT * FROM contacts ORDER BY created_at DESC LIMIT 5').all();
-  const upcomingEvents = db.prepare("SELECT * FROM contacts WHERE status='accepted' AND event_date >= date('now') ORDER BY event_date ASC LIMIT 3").all();
-  const recentGalleries = db.prepare('SELECT * FROM client_galleries ORDER BY created_at DESC LIMIT 3').all();
+router.get('/dashboard', requireAdmin, async (req, res) => {
+  const [cCount, pCount, aCount, dCount, gCount, recent, upcoming, recentG] = await Promise.all([
+    db.execute('SELECT COUNT(*) as count FROM contacts'),
+    db.execute("SELECT COUNT(*) as count FROM contacts WHERE status='pending'"),
+    db.execute("SELECT COUNT(*) as count FROM contacts WHERE status='accepted'"),
+    db.execute("SELECT COUNT(*) as count FROM contacts WHERE status='denied'"),
+    db.execute('SELECT COUNT(*) as count FROM client_galleries'),
+    db.execute('SELECT * FROM contacts ORDER BY created_at DESC LIMIT 5'),
+    db.execute("SELECT * FROM contacts WHERE status='accepted' AND event_date >= date('now') ORDER BY event_date ASC LIMIT 3"),
+    db.execute('SELECT * FROM client_galleries ORDER BY created_at DESC LIMIT 3'),
+  ]);
   res.render('admin/dashboard', {
-    contactCount, pendingCount, acceptedCount, deniedCount,
-    galleryCount, recentContacts, upcomingEvents, recentGalleries
+    contactCount: cCount.rows[0].count,
+    pendingCount: pCount.rows[0].count,
+    acceptedCount: aCount.rows[0].count,
+    deniedCount: dCount.rows[0].count,
+    galleryCount: gCount.rows[0].count,
+    recentContacts: recent.rows,
+    upcomingEvents: upcoming.rows,
+    recentGalleries: recentG.rows
   });
 });
 
-/* ---------------- Inquiries (contact form) ---------------- */
-router.get('/inquiries', requireAdmin, (req, res) => {
+router.get('/inquiries', requireAdmin, async (req, res) => {
   const filter = req.query.status;
   const valid = ['pending', 'accepted', 'denied'];
-  const rows = valid.includes(filter)
-    ? db.prepare('SELECT * FROM contacts WHERE status = ? ORDER BY created_at DESC').all(filter)
-    : db.prepare('SELECT * FROM contacts ORDER BY created_at DESC').all();
+  const rowsResult = valid.includes(filter)
+    ? await db.execute({ sql: 'SELECT * FROM contacts WHERE status = ? ORDER BY created_at DESC', args: [filter] })
+    : await db.execute('SELECT * FROM contacts ORDER BY created_at DESC');
+  const [all, pending, accepted, denied] = await Promise.all([
+    db.execute('SELECT COUNT(*) c FROM contacts'),
+    db.execute("SELECT COUNT(*) c FROM contacts WHERE status='pending'"),
+    db.execute("SELECT COUNT(*) c FROM contacts WHERE status='accepted'"),
+    db.execute("SELECT COUNT(*) c FROM contacts WHERE status='denied'"),
+  ]);
   const counts = {
-    all: db.prepare('SELECT COUNT(*) c FROM contacts').get().c,
-    pending: db.prepare("SELECT COUNT(*) c FROM contacts WHERE status='pending'").get().c,
-    accepted: db.prepare("SELECT COUNT(*) c FROM contacts WHERE status='accepted'").get().c,
-    denied: db.prepare("SELECT COUNT(*) c FROM contacts WHERE status='denied'").get().c
+    all: all.rows[0].c,
+    pending: pending.rows[0].c,
+    accepted: accepted.rows[0].c,
+    denied: denied.rows[0].c
   };
-  res.render('admin/inquiries', { inquiries: rows, counts, filter: valid.includes(filter) ? filter : 'all' });
+  res.render('admin/inquiries', { inquiries: rowsResult.rows, counts, filter: valid.includes(filter) ? filter : 'all' });
 });
 
-router.post('/inquiry/status/:id', requireAdmin, (req, res) => {
+router.post('/inquiry/status/:id', requireAdmin, async (req, res) => {
   const status = req.body.status;
   if (!['pending', 'accepted', 'denied'].includes(status)) {
     return res.status(400).json({ error: 'Invalid status' });
   }
-  db.prepare('UPDATE contacts SET status = ? WHERE id = ?').run(status, req.params.id);
+  await db.execute({ sql: 'UPDATE contacts SET status = ? WHERE id = ?', args: [status, req.params.id] });
   res.json({ success: true, status });
 });
 
-router.post('/inquiry/delete/:id', requireAdmin, (req, res) => {
-  db.prepare('DELETE FROM contacts WHERE id = ?').run(req.params.id);
+router.post('/inquiry/delete/:id', requireAdmin, async (req, res) => {
+  await db.execute({ sql: 'DELETE FROM contacts WHERE id = ?', args: [req.params.id] });
   res.redirect('/admin/inquiries');
 });
 
-/* ---------------- Schedule (wedding dates) — FAST ---------------- */
-router.get('/schedule', requireAdmin, (req, res) => {
-  const rows = db.prepare(`
+router.get('/schedule', requireAdmin, async (req, res) => {
+  const { rows } = await db.execute(`
     SELECT id, name, email, phone, event_type, event_date, location, status, created_at
     FROM contacts
     WHERE event_date IS NOT NULL AND event_date != ''
     ORDER BY event_date ASC
-  `).all();
+  `);
   const today = new Date().toISOString().slice(0, 10);
   const schedule = rows.map(r => {
     const days = Math.ceil((new Date(r.event_date) - new Date(today)) / 86400000);
     return Object.assign({}, r, { days_until: days });
   });
 
-  /* Calendar data: group dates by status */
   const calendarDates = {};
   rows.forEach(r => {
     if (r.event_date) {
@@ -97,7 +107,6 @@ router.get('/schedule', requireAdmin, (req, res) => {
     }
   });
 
-  /* Holidays — sync from file cache (instant, no API wait) */
   const { getHolidaysSync } = require('../utils/holidays');
   const thisYear = new Date().getFullYear();
   const cc = 'IN';
@@ -105,35 +114,32 @@ router.get('/schedule', requireAdmin, (req, res) => {
 
   res.render('admin/schedule', { schedule, today, calendarDates, holidays });
 
-  /* Background: refresh cache for next year if stale */
   const { getHolidays } = require('../utils/holidays');
   getHolidays(thisYear, cc).catch(() => {});
   getHolidays(thisYear + 1, cc).catch(() => {});
 });
 
-/* ---------------- Site editor (bulk view; inline editing on landing) --- */
-router.get('/site-editor', requireAdmin, (req, res) => {
+router.get('/site-editor', requireAdmin, async (req, res) => {
+  const { rows: textRows } = await db.execute('SELECT key, value FROM site_content');
   const text = {};
-  db.prepare('SELECT key, value FROM site_content').all()
-    .forEach(row => { text[row.key] = row.value; });
+  textRows.forEach(row => { text[row.key] = row.value; });
+  const { rows: mediaRows } = await db.execute('SELECT slot, url, resource_type FROM site_media');
   const media = {};
-  db.prepare('SELECT slot, url, resource_type FROM site_media').all()
-    .forEach(row => { media[row.slot] = row; });
+  mediaRows.forEach(row => { media[row.slot] = row; });
   res.render('admin/site-editor', { TEXT_SLOTS, MEDIA_SLOTS, text, media, saved: req.query.saved });
 });
 
-router.post('/site/text', requireAdmin, (req, res) => {
-  const upsert = db.prepare(
-    `INSERT INTO site_content (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
-     ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = CURRENT_TIMESTAMP`
-  );
-  const apply = db.transaction(() => {
-    for (const slot of TEXT_SLOTS) {
-      const v = (req.body[slot.key] || '').trim();
-      if (v) upsert.run(slot.key, v);
-    }
-  });
-  apply();
+router.post('/site/text', requireAdmin, async (req, res) => {
+  const stmts = [];
+  for (const slot of TEXT_SLOTS) {
+    const v = (req.body[slot.key] || '').trim();
+    if (v) stmts.push({
+      sql: `INSERT INTO site_content (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = CURRENT_TIMESTAMP`,
+      args: [slot.key, v]
+    });
+  }
+  if (stmts.length) await db.batch(stmts);
   res.redirect('/admin/site-editor?saved=1');
 });
 
@@ -144,30 +150,29 @@ router.post('/site/media/:slot', requireAdmin, mediaUpload.single('media'), asyn
   if (!req.file) return res.status(400).json({ error: 'No file received' });
 
   const store = require('../utils/storage');
-  const previous = db.prepare('SELECT * FROM site_media WHERE slot = ?').get(slot);
+  const { rows: prevRows } = await db.execute({ sql: 'SELECT * FROM site_media WHERE slot = ?', args: [slot] });
+  const previous = prevRows[0];
 
   try {
     if (!store.isConfigured()) {
       return res.status(500).json({ error: 'No storage backend configured (R2/Telegram)' });
     }
     const result = await store.uploadAsset(req.file.path, req.file.originalname, meta.resourceType);
-    const row = { slot, cloudinary_id: result.storageId, url: result.url,
-            resource_type: result.resourceType, original_name: result.originalName,
-            storage_backend: result.backend || 'r2' };
     if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-    db.prepare(
-      `INSERT INTO site_media (slot, cloudinary_id, url, resource_type, original_name, storage_backend, updated_at)
-       VALUES (@slot, @cloudinary_id, @url, @resource_type, @original_name, @storage_backend, CURRENT_TIMESTAMP)
-       ON CONFLICT(slot) DO UPDATE SET
-         cloudinary_id = excluded.cloudinary_id,
-         url = excluded.url,
-         resource_type = excluded.resource_type,
-         original_name = excluded.original_name,
-         storage_backend = excluded.storage_backend,
-         updated_at = CURRENT_TIMESTAMP`
-    ).run(row);
+    await db.execute({
+      sql: `INSERT INTO site_media (slot, cloudinary_id, url, resource_type, original_name, storage_backend, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(slot) DO UPDATE SET
+              cloudinary_id = excluded.cloudinary_id,
+              url = excluded.url,
+              resource_type = excluded.resource_type,
+              original_name = excluded.original_name,
+              storage_backend = excluded.storage_backend,
+              updated_at = CURRENT_TIMESTAMP`,
+      args: [slot, result.storageId, result.url, result.resourceType, result.originalName, result.backend || 'r2']
+    });
     if (previous) await store.deleteAsset(previous.cloudinary_id, previous.storage_backend);
-    res.json({ success: true, url: row.url, resource_type: row.resource_type });
+    res.json({ success: true, url: result.url, resource_type: result.resourceType });
   } catch (err) {
     console.error('Site media upload failed:', err.message);
     res.status(500).json({ error: 'Upload failed: ' + err.message });
@@ -175,11 +180,12 @@ router.post('/site/media/:slot', requireAdmin, mediaUpload.single('media'), asyn
 });
 
 router.post('/site/media/:slot/reset', requireAdmin, async (req, res) => {
-  const previous = db.prepare('SELECT * FROM site_media WHERE slot = ?').get(req.params.slot);
+  const { rows: prevRows } = await db.execute({ sql: 'SELECT * FROM site_media WHERE slot = ?', args: [req.params.slot] });
+  const previous = prevRows[0];
   if (previous) {
     const store = require('../utils/storage');
     await store.deleteAsset(previous.cloudinary_id, previous.storage_backend);
-    db.prepare('DELETE FROM site_media WHERE slot = ?').run(req.params.slot);
+    await db.execute({ sql: 'DELETE FROM site_media WHERE slot = ?', args: [req.params.slot] });
   }
   res.json({ success: true });
 });

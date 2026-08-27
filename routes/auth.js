@@ -1,17 +1,17 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const db = require('../database/db');
+const { db } = require('../database/db');
 const router = express.Router();
 
-/* Hidden admin entrance — never linked from the landing page. */
 router.get('/login', (req, res) => {
   if (req.session.admin) return res.redirect('/admin/dashboard');
   res.render('admin/login', { error: null, passwordChanged: false });
 });
 
-router.post('/login', (req, res) => {
+router.post('/login', async (req, res) => {
   const { username, password } = req.body;
-  const admin = db.prepare('SELECT * FROM admins WHERE username = ?').get(username);
+  const { rows } = await db.execute({ sql: 'SELECT * FROM admins WHERE username = ?', args: [username] });
+  const admin = rows[0];
   if (!admin || !bcrypt.compareSync(password, admin.password)) {
     return res.render('admin/login', { error: 'Invalid username or password', passwordChanged: false });
   }
@@ -24,17 +24,17 @@ router.get('/logout', (req, res) => {
   res.redirect('/admin/auth/login');
 });
 
-/* Account settings — username + password */
-router.get('/change-password', (req, res) => {
+router.get('/change-password', async (req, res) => {
   if (!req.session.admin) return res.redirect('/admin/auth/login');
-  const admin = db.prepare('SELECT * FROM admins WHERE id = ?').get(req.session.admin.id);
-  res.render('admin/change-password', { error: null, success: null, admin });
+  const { rows } = await db.execute({ sql: 'SELECT * FROM admins WHERE id = ?', args: [req.session.admin.id] });
+  res.render('admin/change-password', { error: null, success: null, admin: rows[0] });
 });
 
 router.post('/change-password', async (req, res) => {
   if (!req.session.admin) return res.redirect('/admin/auth/login');
   const { username, currentPassword, newPassword, confirmPassword } = req.body;
-  const admin = db.prepare('SELECT * FROM admins WHERE id = ?').get(req.session.admin.id);
+  const { rows } = await db.execute({ sql: 'SELECT * FROM admins WHERE id = ?', args: [req.session.admin.id] });
+  const admin = rows[0];
 
   if (!currentPassword) {
     return res.render('admin/change-password', { error: 'Current password is required', success: null, admin });
@@ -46,21 +46,19 @@ router.post('/change-password', async (req, res) => {
   let updated = false;
   let msg = '';
 
-  /* Update username if changed */
   if (username && username !== admin.username) {
     if (username.length < 3) {
       return res.render('admin/change-password', { error: 'Username must be at least 3 characters', success: null, admin });
     }
-    const exists = db.prepare('SELECT id FROM admins WHERE username = ? AND id != ?').get(username, admin.id);
-    if (exists) {
+    const { rows: exists } = await db.execute({ sql: 'SELECT id FROM admins WHERE username = ? AND id != ?', args: [username, admin.id] });
+    if (exists.length > 0) {
       return res.render('admin/change-password', { error: 'Username already taken', success: null, admin });
     }
-    db.prepare('UPDATE admins SET username = ? WHERE id = ?').run(username, admin.id);
+    await db.execute({ sql: 'UPDATE admins SET username = ? WHERE id = ?', args: [username, admin.id] });
     req.session.admin.username = username;
     updated = true;
   }
 
-  /* Update password if provided */
   if (newPassword) {
     if (newPassword !== confirmPassword) {
       return res.render('admin/change-password', { error: 'New passwords do not match', success: null, admin });
@@ -69,13 +67,13 @@ router.post('/change-password', async (req, res) => {
       return res.render('admin/change-password', { error: 'New password must be at least 6 characters', success: null, admin });
     }
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    db.prepare('UPDATE admins SET password = ? WHERE id = ?').run(hashedPassword, admin.id);
+    await db.execute({ sql: 'UPDATE admins SET password = ? WHERE id = ?', args: [hashedPassword, admin.id] });
     updated = true;
   }
 
   if (updated) {
-    const freshAdmin = db.prepare('SELECT * FROM admins WHERE id = ?').get(admin.id);
-    res.render('admin/change-password', { error: null, success: 'Account updated successfully', admin: freshAdmin });
+    const { rows: fresh } = await db.execute({ sql: 'SELECT * FROM admins WHERE id = ?', args: [admin.id] });
+    res.render('admin/change-password', { error: null, success: 'Account updated successfully', admin: fresh[0] });
   } else {
     res.render('admin/change-password', { error: 'No changes made', success: null, admin });
   }
