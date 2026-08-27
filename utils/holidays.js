@@ -59,8 +59,8 @@ async function getHolidays(year, countryCode) {
 
   let map = {};
 
-  /* --- Primary: indian-festival-api (40+ Indian festivals, EN names) --- */
   if (cc === 'IN') {
+    /* Source 1: indian-festival-api (40+ festivals — Hindu, Muslim, Sikh, etc.) */
     try {
       const raw = await fetchJSON('https://indian-festival-api.vercel.app/api/festivals');
       (raw.data || []).forEach(h => {
@@ -70,34 +70,28 @@ async function getHolidays(year, countryCode) {
           map[date] = { name: h.name, localName: h.name };
         }
       });
-    } catch (err) {
-      // Primary down, try fallback
-    }
-  }
+    } catch (err) {}
 
-  /* --- Fallback 1: tallyfy.com (10 national holidays, any year) --- */
-  if (Object.keys(map).length === 0 && cc === 'IN') {
+    /* Source 2: tallyfy.com (10 national holidays — adds any missing ones) */
     try {
       const raw = await fetchJSON(`https://tallyfy.com/national-holidays/api/IN/${year}.json`);
       (raw.holidays || []).forEach(h => {
         const d = h.observed_date || h.date;
-        map[d] = { name: h.name, localName: h.name };
+        if (d && !map[d]) {
+          map[d] = { name: h.name, localName: h.name };
+        }
       });
-    } catch (err) {
-      // Try fallback 2
-    }
+    } catch (err) {}
   }
 
-  /* --- Fallback 2: date.nager.at --- */
+  /* Fallback for non-IN or if both above fail: date.nager.at */
   if (Object.keys(map).length === 0) {
     try {
       const raw = await fetchJSON(`https://date.nager.at/api/v3/PublicHolidays/${year}/${cc}`);
       raw.forEach(h => {
         map[h.date] = { name: h.name, localName: h.localName || h.name };
       });
-    } catch (err) {
-      // All failed — holidays will be empty, schedule still works
-    }
+    } catch (err) {}
   }
 
   if (Object.keys(map).length > 0) {
