@@ -1,7 +1,7 @@
 /* ==========================================================================
    STORAGE SERVICE — per-gallery backend selection.
    R2, Cloudinary (compress), Telegram. No local fallback.
-   Default: R2 (fast, unlimited)
+   Default: Cloudinary (configured in .env)
    ========================================================================== */
 const fs = require('fs');
 const path = require('path');
@@ -33,12 +33,12 @@ function getBackend(name) {
     if (impl && impl.isConfigured()) return { name: 'telegram', impl };
   }
 
-  // Default: R2 first, then Cloudinary, then Telegram
-  const r2 = loadBackend('r2');
-  if (r2 && r2.isConfigured()) return { name: 'r2', impl: r2 };
-
+  // Default: Cloudinary first, then R2, then Telegram
   const cld = loadBackend('cloudinary');
   if (cld && cld.isConfigured()) return { name: 'cloudinary', impl: cld };
+
+  const r2 = loadBackend('r2');
+  if (r2 && r2.isConfigured()) return { name: 'r2', impl: r2 };
 
   const tg = loadBackend('telegram');
   if (tg && tg.isConfigured()) return { name: 'telegram', impl: tg };
@@ -65,7 +65,7 @@ function isConfigured() {
  * @param {string} clientName - client name for folder
  */
 async function uploadAsset(filePath, originalName, resourceType, gallerySlug, backendHint, clientName) {
-  const { name, impl } = getBackend(backendHint || 'telegram');
+  const { name, impl } = getBackend(backendHint || 'cloudinary');
 
   // Telegram 50MB limit — if oversized, try R2
   const fileSize = fs.statSync(filePath).size;
@@ -87,7 +87,7 @@ async function deleteAsset(storageId, backendHint) {
   if (!storageId) return;
   // Skip invalid file_ids
   if (storageId === 'local' || storageId.length < 10) return;
-  const { impl } = getBackend(backendHint || 'telegram');
+  const { impl } = getBackend(backendHint || 'cloudinary');
   if (impl) return impl.deleteAsset(storageId);
 }
 
