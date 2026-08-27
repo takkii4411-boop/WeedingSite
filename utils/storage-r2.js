@@ -6,7 +6,7 @@ const { S3Client, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/cl
 const fs = require('fs');
 const path = require('path');
 
-const BUCKET = process.env.R2_BUCKET;
+const BUCKET = process.env.R2_BUCKET || process.env.R2_BUCKET_NAME;
 const PUBLIC_URL = (process.env.R2_PUBLIC_URL || '').replace(/\/+$/, '');
 
 const s3 = new S3Client({
